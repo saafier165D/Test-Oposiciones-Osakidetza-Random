@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPE Osakidetza Móvil</title>
+    <style>
+        body { 
+
+            font-family: Arial; 
+            padding: 20px; 
+            background: #ebf5ff; 
+        }
+
+        .card { 
+            
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        }
+
+        .option { 
+            
+            display: block; 
+            padding: 15px; 
+            margin: 10px 0;
+            border: 1px solid #ccc; 
+            border-radius: 5px; cursor: pointer; 
+        }
+
+        .correct { background: #d4ffd4 !important; border-color: #28a745 !important; }
+        .wrong { background: #ffd4d4 !important; border-color: #dc3545 !important; }
+
+        
+        button { width: 100%; padding: 15px; background: #326eb4; color: white; border: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="info"></div>
+        <h3 id="pregunta"></h3>
+        <div id="opciones"></div>
+        <button id="btn" onclick="checkOrNext()">Comprobar</button>
+    </div>
+
+    <script>
+    const banco = [
+        
+        //posible error de respuestas ya que todas son b
+        { e: "201.- ¿Qué órganos fueron responsables de la dirección y elaboración del Plan de Salud Euskadi 2030, según el documento?", o: ["a) El Consejo de Gobierno y el Departamento de Hacienda.", "b) Un Comité de Dirección y un Comité Estratégico.", "c) La Dirección General de Osakidetza y Lehendakaritza.", "d) El Observatorio de Salud y la consultora LKS S Coop."], c: 1 },
+        { e: "202.- Dentro del Objetivo General 5 del Plan de Salud Euskadi 2030, ¿cuáles son las características que deben definir al sistema de salud pública para responder a los nuevos retos?", o: ["a) Estratégico, descentralizado, participativo y eficiente.", "b) Flexible, sólido, ágil y escalable.", "c) Universal, equitativo, transparente y tecnológico.", "d) Resiliente, preventivo, comunitario e integral."], c: 1 },
+        { e: "203.- Qué enfoque de investigación prioriza el Plan de Salud Euskadi 2030 para asegurar que los avances científicos lleguen de forma efectiva a la práctica clínica y la salud de la población?", o: ["a) Enfoque de investigación básica y fundamental.", "b) Enfoque de investigación traslacional.", "c) Enfoque de investigación puramente epidemiológica.", "d) Enfoque de investigación competitiva internacional."], c: 1 },
+        { e: "204.- Según el modelo de evaluación del Plan de Salud Euskadi 2030, ¿cuáles son los cuatro criterios fundamentales para determinar el éxito de las intervenciones?", o: ["a) Impacto, cobertura, equidad y transparencia.", "b) Relevancia, efectividad, eficiencia y sostenibilidad.", "c) Rentabilidad, participación, innovación y prestigio.", "d) Calidad, calidez, rapidez y ahorro presupuestario."], c: 1 },
+        { e: "205.- En la lucha contra las desigualdades, ¿qué tipo de soluciones habitacionales promueve el Plan de Salud Euskadi 2030 para las diferentes etapas de la vida?", o: ["a) Construcción de viviendas de protección oficial exclusivamente rurales.", "b) Soluciones habitacionales asequibles, accesibles y adaptadas al ciclo vital.", "c) Ayudas directas al alquiler únicamente para personas menores de 30 años", "d) Fomento de grandes centros residenciales para todas las personas con enfermedades crónicas."], c: 1 },
+        { e: "206.- Según la comparativa de la Memoria Económica del Plan de Salud Euskadi 2030, ¿cuál es el programa presupuestario (fuera del gasto general de Osakidetza) con mayor dotación?", o: ["a) Programa de Salud Pública.", "b) Programa de Farmacia.", "c) Programa de Adicciones.", "d) Programa de Investigación y Planificación."], c: 1 },
+        { e: "207.- El Plan de Salud Euskadi 2030 busca lograr 'comunidades amigables' para las personas mayores. ¿Cuál es la finalidad última de esta estrategia?", o: ["a) Segregar los espacios públicos por franjas de edad.", "b) Adaptar el entorno físico y social para fomentar un envejecimiento activo y con sentido.", "c) Aumentar el número de plazas en residencias geriátricas de alta especialización.", "d) Limitar el acceso de vehículos a las zonas cercanas a los centros de salud."], c: 1 },
+        { e: "208.- En el ámbito de la salud digital, ¿qué concepto destaca el Plan de Salud Euskadi 2030 para transformar la atención personalizada?", o: ["a) La teleasistencia robótica obligatoria en todos los domicilios.", "b) La medicina de precisión y la integración de datos genómicos.", "c) La eliminación definitiva de la historia clínica en papel en favor del PDF.", "d) La creación de una red social exclusiva para pacientes crónicos/as."], c: 1 },
+        { e: "209.- ¿Cómo define el Plan de Salud Euskadi 2030 el concepto de 'Intersectorialidad' en la gestión de la salud?", o: ["a) La competencia entre diferentes sectores para obtener fondos públicos.", "b) La colaboración entre departamentos del Gobierno para que la salud esté en todas las políticas.", "c) La privatización de sectores sanitarios no críticos.", "d) La creación de un único departamento que gestione salud, educación y vivienda."], c: 1 },
+        { e: "210.- ¿Cuál es la visión del Plan de Salud Euskadi 2030 sobre el uso de la evidencia científica en la toma de decisiones políticas?", o: ["a) Es un elemento opcional supeditado a la oportunidad política.", "b) Es la base fundamental para el diseño, implementación y evaluación de las políticas de salud.", "c) Solo se debe aplicar en casos de alertas sanitarias internacionales.", "d) Se reserva exclusivamente para el ámbito académico, no para el legislativo."], c: 1 },
+        //posible error de respuestas ya que todas son b
+
+        { e: "211.- Según el análisis del contexto social del documento de Diagnóstico del Pacto Vasco de Salud de Euskadi, ¿qué factor se identifica como un motor clave para que la ciudadanía del siglo XXI demande un papel más activo en su salud?", o: ["a) El incremento exclusivo de la esperanza de vida al nacer.", "b) El acceso generalizado a la información y un mayor nivel educativo en la CAPV.", "c) La reducción drástica de las listas de espera en consultas externas.", "d) La implementación de la receta electrónica en todas las farmacias."], c: 1 },
+        { e: "212.- El documento de Diagnóstico del Pacto Vasco de Salud de Euskadi señala que los flujos migratorios actuales en Euskadi:", o: ["a) No tienen impacto relevante en el perfil epidemiológico de la comunidad.", "b) Revelan patologías anteriormente poco conocidas en nuestro entorno, pero prevalentes en otras latitudes.", "c) Se limitan exclusivamente a personas en edad laboral con excelente estado de salud inicial.", "d) Han provocado la saturación irreversible de los servicios de urgencias hospitalarias."], c: 1 },
+        { e: "213.- ¿Cuál es uno de los principales desafíos identificados en el documento de Diagnóstico del Pacto Vasco de Salud de Euskadi respecto a la formación y relevo del personal sanitario?", o: ["a) La excesiva oferta de plazas MIR en todas las especialidades médicas.", "b) La falta de interés de las nuevas generaciones por las profesiones biosanitarias.", "c) La necesidad de planificar el relevo ante la jubilación de cohortes numerosas de profesionales.", "d) La prohibición de la formación continua dentro del horario laboral."], c: 2 },
+        { e: "214.- Sobre el impacto del cambio global y climático, el documento de Diagnóstico del Pacto Vasco de Salud de Euskadi advierte de la aparición de:", o: ["a) Patologías ligadas exclusivamente al consumo de alimentos ultraprocesados.", "b) Nuevos vectores y virus anteriormente inexistentes en nuestro entorno, como el virus del Nilo.", "c) Una disminución natural de las enfermedades respiratorias debido al aumento de temperaturas.", "d) La erradicación total de las enfermedades infecciosas estacionales."], c: 1 },
+        { e: "215.- El documento de Diagnóstico del Pacto Vasco de Salud de Euskadi propone que los indicadores sanitarios para evaluar el sistema deben:", o: ["a) Basarse exclusivamente en mediciones de actividad (número de consultas y cirugías).", "b) Ser confidenciales y accesibles únicamente para la alta dirección del Departamento de Salud.", "c) Ignorar la perspectiva de género para simplificar la toma de datos estadísticos.", "d) Reflejar resultados en salud y sostenibilidad, y no solo volumen de actividad."], c: 3 },
+        { e: "216.- ¿Cuál es la finalidad principal de los Valores Fundamentales del Pacto Vasco de Salud, según el Libro de Valores y principios?", o: ["a) Ser la base para la elaboración del futuro Plan Estratégico de Osakidetza.", "b) Establecer la estructura financiera y la autonomía de gestión del sistema de salud.", "c) Ser el fundamento ético y social que soporta la actividad del Sistema Público de Salud de Euskadi.", "d) Garantizar la cobertura universal únicamente a la ciudadanía vasca empadronada."], c: 2 },
+        { e: "217.- ¿Cuál de los siguientes es un Valor Fundamental explícito del Pacto Vasco de Salud, además de la Universalidad y la Equidad?", o: ["a) La Sostenibilidad del sistema.", "b) La Eficiencia en el gasto.", "c) La Corresponsabilidad.", "d) El Plurilingüismo como eje central de la atención."], c: 2 },
+        { e: "218.- El principio rector de la Salud en Todas las Políticas (STP) en el Pacto Vasco de Salud tiene como alcance la necesidad de:", o: ["a) Incorporar la perspectiva de salud en todas las decisiones y políticas públicas, fuera del ámbito sanitario.", "b) Priorizar el presupuesto del Departamento de Salud sobre el resto de las carteras del Gobierno Vasco.", "c) Centralizar toda la toma de decisiones en el Consejo Asesor del Departamento de Salud.", "d) Desarrollar un plan de choque específico para la Atención Primaria, desvinculado de la hospitalaria."], c: 0 },
+        { e: "219.- El principio de Innovación en el Pacto Vasco de Salud se aplica a:", o: ["a) Exclusivamente a la aplicación de nuevas tecnologías de imagen médica.", "b) La I+D+i en todas las fases y dimensiones de la salud, incluyendo la organizativa y la asistencial.", "c) La importación de modelos de éxito de otros sistemas sanitarios europeos.", "d) La digitalización de la historia clínica en Osakidetza."], c: 1 },
+        { e: "220.- En el marco del Pacto Vasco de Salud, el principio rector de la Transparencia y Rendición de Cuentas tiene como objetivo principal:", o: ["a) Garantizar la confidencialidad absoluta de los datos de salud de las personas pacientes.", "b) Asegurar que las personas gestoras tengan acceso a todos los cuadros de mando de la OSI.", "c) Comunicar regularmente los resultados y progresos del sistema a todas las partes involucradas, fortaleciendo la confianza.", "d) Permitir auditorías externas del gasto sanitario cada cinco años."], c: 2 },
+        { e: "221.- En el marco del Pacto Vasco de Salud, dentro de los principios rectores, la 'Orientación al Valor' significa que el sistema debe priorizar:", o: ["a) Las intervenciones que generen los mejores resultados relevantes para la persona al menor coste posible.", "b) El valor de mercado de las acciones de las empresas proveedoras de tecnología.", "c) El incremento constante de las infraestructuras físicas sobre la inversión en personal.", "d) La compra masiva de medicamentos de marca sobre los genéricos."], c: 0 },
+
+        { e: "222.- ¿En qué grandes ámbitos se estructuran las Líneas Estratégicas del Pacto Vasco de Salud?", o: ["a) Cinco Líneas Estratégicas. prevención y promoción de la salud; atención a la enfermedad; calidad, innovación y sostenibilidad; desarrollo de las y los profesionales; y Gobernanza.", "b) Seis Líneas Estratégicas: prevención y promoción de la salud; atención a la enfermedad; áreas prioritarias de salud; calidad, innovación y sostenibilidad; desarrollo de las y los profesionales; y transparencia y participación ciudadana.", "c) Seis Líneas Estratégicas: prevención y promoción de la salud; atención a la enfermedad; áreas prioritarias de salud; calidad, innovación y sostenibilidad; desarrollo de las y los profesionales; y gobernanza.", "d) Seis Líneas Estratégicas: prevención y promoción de la salud; atención sociosanitaria; áreas prioritarias de salud; calidad, innovación y sostenibilidad; desarrollo de las y los profesionales; y gobernanza."], c: 2 },
+        { e: "223.- La Línea Estratégica I del Pacto Vasco de Salud, centrada en el enfoque 'One Health' (Una Sola Salud), propone:", o: ["a) Centralizar todos los hospitales en una única gerencia provincial.", "b) Crear un seguro de salud único para todas las mascotas de la CAPV.", "c) Centrarse exclusivamente en la salud humana, delegando la ambiental a otros departamentos.", "d) Integrar la salud humana, animal y ambiental en la planificación y vigilancia sanitaria."], c: 3 },
+        { e: "224.- ¿Cuál es el papel de la Atención Primaria y Comunitaria dentro de las Líneas Estratégicas del Pacto Vasco de Salud?", o: ["a) Actuar como un servicio de triaje rápido para derivar todos los casos al hospital.", "b) Ser un servicio opcional para quienes no dispongan de seguro privado.", "c) Limitarse a la atención administrativa y la gestión de bajas laborales.", "d) Ser la base estratégica que cohesione y sustente todo el sistema de salud vasco."], c: 3 },
+        { e: "225.- En relación con la Línea Estratégica 06 sobre 'Cronicidad' del Pacto Vasco de Salud, ¿qué objetivo se persigue primordialmente?", o: ["a) Institucionalizar a todas las personas con enfermedades crónicas en centros especializados.", "b) Reforzar la autonomía y corresponsabilidad de las personas con enfermedades crónicas.", "c) Sustituir las consultas médicas presenciales por seguimiento telefónico automático.", "d) Reducir la cobertura de medicamentos para patologías de larga duración."], c: 1 },
+        { e: "226.- La Línea Estratégica 07 sobre 'Atención Sociosanitaria' del Pacto Vasco de Salud subraya la necesidad de:", o: ["a) Separar definitivamente las competencias de Salud de las de Servicios Sociales.", "b) Mejorar la coordinación y el tránsito de las personas entre el sistema sanitario y el social.", "c) Eliminar las ayudas a la dependencia para fomentar el ahorro público.", "d) Obligar a las personas pacientes a elegir entre atención médica o apoyo social."], c: 1 },
+        { e: "227.- Respecto a la 'Salud Mental' (Línea 11), el Pacto Vasco de Salud pone el foco en:", o: ["a) La promoción del bienestar emocional y la detección precoz, especialmente en jóvenes.", "b) El aislamiento preventivo de las personas con trastornos mentales graves.", "c) La medicalización sistemática de cualquier malestar emocional de la ciudadanía.", "d) La reducción de la plantilla de psicología en los centros de salud primaria."], c: 0 },
+        { e: "228.- La Línea Estratégica 18 sobre 'Digitalización en Salud' del Pacto Vasco de Salud busca la transformación digital para:", o: ["a) Reemplazar al personal sanitario por sistemas de inteligencia artificial autónomos.", "b) Eliminar el papel de todos los archivos históricos sin digitalizar previamente.", "c) Facilitar la accesibilidad, la personalización de la atención y la eficiencia organizativa.", "d) Crear una base de datos pública con el historial clínico de toda la ciudadanía."], c: 2 },
+        { e: "229.- En la 'Política de Personas' (Línea 21) del Pacto Vasco de Salud, se establece como prioridad:", o: ["a) Facilitar la jubilación forzosa a los 60 años para reducir costes laborales.", "b) Fortalecer la atracción, fidelización, desarrollo y liderazgo de las y los profesionales.", "c) Sustituir al personal fijo por contratos temporales para ganar flexibilidad.", "d) Prohibir la participación de los sindicatos en la toma de decisiones estratégicas."], c: 1 },
+        { e: "230.- La Línea Estratégica 24 sobre 'Derechos Lingüísticos' del Pacto Vasco de Salud tiene como fin:", o: ["a) Garantizar que las personas pacientes puedan ser atendidas en la lengua oficial de su elección.", "b) Obligar a toda la ciudadanía a realizar sus consultas médicas exclusivamente en euskera.", "c) Eliminar el uso de lenguas extranjeras en la formación médica especializada.", "d) Centralizar los servicios de traducción en una única sede en Vitoria-Gasteiz."], c: 0 },
+        { e: "231.- ¿Cuál es el periodo de vigencia indicado en el título de la “Estrategia de Seguridad del Paciente” de Osakidetza, y en qué mes y año se publicó su primera edición?", o: ["a) Vigencia 2021-2030, editada en enero de 2023.", "b) Vigencia 2020-2024, editada en diciembre de 2022.", "c) Vigencia 2020-2030, editada en abril de 2023.", "d) Vigencia 2023-2030, editada en julio de 2023."], c: 2 },
+        { e: "232.- ¿Cuál es el Objetivo General establecido para la “Estrategia de Seguridad del Paciente 20-30”?", o: ["a) Reducir a cero los eventos adversos mediante la incorporación de tecnología robótica.", "b) Mejorar la calidad asistencial del sistema sanitario vasco.", "c) Promover el máximo nivel de seguridad posible, minimizando la probabilidad de ocurrencia de incidentes de seguridad en el transcurso de la asistencia sanitaria.", "d) Centralizar la gestión de riesgos en un único organismo fuera de Osakidetza."], c: 2 },
+        { e: "233.- El principio hipocrático al que se hace referencia en la “Estrategia de Seguridad del Paciente 20-30”, y que la ciudadanía asume que se verifica en el transcurso de la actividad asistencial, es:", o: ["a) Salus populi suprema lex esto (la salud del pueblo es la ley suprema).", "b) Corpus sanum in mente sana (mente sana en cuerpo sano).", "c) Lex artis ad hoc (ley del arte para el caso).", "d) Primum non nocere (primero no hacer daño)."], c: 3 },
+    
+        { e: "234.- ¿A qué periodos correspondieron las dos estrategias previas de seguridad de paciente publicadas en Euskadi, de las cuales esta Estrategia 20-30 es la tercera?", o: ["a) 2008-2012 y 2013-2017.", "b) 2010-2015 y 2016-2020.", "c) 2013-2016 y 2017-2020.", "d) 2018-2021 y 2022-2025."], c: 2 },
+        { e: "235.- ¿Cuáles son las dos nuevas Líneas de Acción incorporadas en la “Estrategia de Seguridad del Paciente 20-30” que responden a una necesidad percibida por las personas expertas?", o: ["a) Seguridad en Pediatría y Buenas Prácticas en el Uso de Biológicos.", "b) Atención en Cuidados Paliativos y Seguridad Domiciliaria.", "c) La Seguridad de Paciente en Emergencias y la Prevención del Suicidio.", "d) Seguridad en Salud Mental y Prevención de las Úlceras por Presión."], c: 2 },
+        { e: "236.- De acuerdo con la “Estrategia de Seguridad de Paciente 20-30”, ¿cómo se denomina al incidente de seguridad que, a diferencia del incidente sin daño, sí ocasiona algún tipo de daño a las personas atendidas?", o: ["a) Error no evitable.", "b) Circunstancia notificable.", "c) Fallo latente.", "d) Evento Adverso."], c: 3 },
+        { e: "237.- ¿Cuál es el enfoque principal de la Línea de Acción Corporativa L2 de la “Estrategia de Seguridad del Paciente 20-30”?", o: ["a) Implicación de pacientes en su seguridad.", "b) Conciliación de la medicación.", "c) Atención a las segundas y terceras víctimas.", "d) Gestión de los incidentes de seguridad."], c: 2 },
+        { e: "238.- ¿Cuál de los siguientes es el Objetivo Específico número 1 de la “Estrategia de Seguridad del Paciente 20-30”, enfocado en el cambio interno?", o: ["a) Garantizar la continuidad de las líneas de acción y proyectos previamente implantados.", "b) Impulsar la cultura de seguridad de paciente en las organizaciones de servicios de Osakidetza, promoviendo la formación y sensibilización como aspectos clave.", "c) Optimizar la prescripción de pruebas diagnósticas que utilizan radiación ionizante.", "d) Implantar un sistema de identificación inequívoca de pacientes en todas las fases del proceso asistencial."], c: 1 },
+        { e: "239.- Según la “Estrategia de Seguridad del Paciente 20-30”, el Objetivo General de la Línea de Acción L4 'Implicación de pacientes en su seguridad' es:", o: ["a) Garantizar que todas las personas pacientes reciban un plan de acogida con información de seguridad.", "b) Potenciar las capacidades de las personas pacientes para actuar como personal de apoyo en las unidades de enfermería.", "c) Promover la participación de pacientes, familiares y personas cuidadoras para mejorar la seguridad del sistema sanitario.", "d) Establecer un sistema de recompensas económicas para pacientes que notifiquen incidentes."], c: 2 },
+        { e: "240.- La Línea de Acción Corporativa L8 de la “Estrategia de Seguridad del Paciente 20-30” está dedicada a:", o: ["a) Conciliación de la medicación.", "b) Prevención y control de las infecciones relacionadas con la asistencia sanitaria.", "c) Seguridad en el proceso asistencial gestación-parto-puerperio.", "d) Seguridad transfusional."], c: 1 },
+        { e: "241.- ¿A qué se refiere la Línea de Acción Corporativa L10 de la “Estrategia de Seguridad del Paciente 20-30”, cuyo objetivo es reducir los eventos adversos específicos de un proceso asistencial?", o: ["a) Cirugía Segura.", "b) Atención Primaria.", "c) Seguridad en el proceso asistencial gestación-parto-puerperio.", "d) Seguridad de las personas pacientes en los servicios de urgencias."], c: 2 },
+        { e: "242.- ¿Qué documento se menciona en la “Estrategia de Seguridad del Paciente 20-30” como el que determinó que las personas atendidas por un sistema medicalizado (tipo 061/112) presentan un mayor porcentaje de incidentes de seguridad en el entorno de Emergencias?", o: ["a) Estudio Nacional de Efectos Adversos en centros hospitalarios (ENEAS).", "b) Estudio APEAS.", "c) Estudio EVADUR.", "d) Informe del Instituto de Medicina de los Estados Unidos (IOM)."], c: 2 },
+        { e: "243.- El capítulo de Formación de la “Estrategia de Seguridad del Paciente 20-30” señala que, además de impulsar el desarrollo de prácticas seguras, las organizaciones comprometidas orientan sus esfuerzos a aumentar la formación en los llamados:", o: ["a) Factores humanos o factores no técnicos.", "b) Factores biomédicos y patofisiológicos.", "c) Factores económicos y de sostenibilidad.", "d) Factores organizativos de Osakidetza."], c: 0 },
+        { e: "244.- ¿Cuál de las siguientes Líneas de Acción de la “Estrategia de Seguridad del Paciente 20-30” NO está relacionada con el sistema de utilización del medicamento?", o: ["a) L5. Conciliación de la medicación.", "b) L14. Buenas prácticas asociadas a la utilización de medicación.", "c) L6. Optimización en la prescripción de pruebas diagnósticas que utilizan radiación ionizante.", "d) L7. Seguridad transfusional (Nota: la seguridad transfusional se considera una línea separada, aunque implica la administración de productos sanguíneos)."], c: 2 },
+        { e: "245.- ¿Cuántas Líneas de Acción Corporativas (L1 a L...) se definen en la Estrategia de Seguridad del Paciente 20-30?", o: ["a) 14 líneas de acción.", "b) 15 líneas de acción.", "c) 16 líneas de acción.", "d) 17 líneas de acción."], c: 3 },
+
+        { e: "246.- Según el diagnóstico del II Plan para la Igualdad de Mujeres y Hombres en Osakidetza, ¿qué porcentaje de mujeres y hombres, respectivamente, componía la plantilla total de Osakidetza en enero de 2025?", o: ["a) 60% mujeres y 40% hombres", "b) 75% mujeres y 25% hombres", "c) 80% mujeres y 20% hombres", "d) 90% mujeres y 10% hombres"], c: 2 },
+        { e: "247.- Una de las metas del II Plan para la Igualdad de Mujeres y Hombres en Osakidetza es la “CAPACITACIÓN EN IGUALDAD”. ¿Cuál es su objetivo principal?", o: ["a) Reducir la brecha de género en investigación en un 4%.", "b) Conseguir que todas las personas trabajadoras de Osakidetza conozcan el Plan y el Protocolo de Acoso.", "c) Reducir a la mitad las categorías con brecha retributiva superior al 5%.", "d) Garantizar la formación básica, progresiva, permanente y obligatoria de todo el personal de Osakidetza."], c: 3 },
+        { e: "248.- ¿Qué institución aprueba el II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028)?", o: ["a) Mesa Sectorial de Sanidad.", "b) Emakunde.", "c) Consejo de Administración de Osakidetza.", "d) Dirección General de Osakidetza."], c: 2 },
+        { e: "249.- De acuerdo con el II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028), ¿qué concepto define, dentro del diagnóstico de la organización, la dificultad invisible que encuentran las mujeres para acceder a puestos de mayor responsabilidad y toma de decisiones?", o: ["a) Segregación horizontal.", "b) Suelo pegajoso.", "c) Brecha salarial técnica", "d) Techo de cristal."], c: 3 },
+        { e: "250.- Una de las Metas del II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028) es “CORRESPONSABILIDAD”. ¿Cuál es el objetivo específico asociado a esta meta?", o: ["a) Reducir el porcentaje de hombres en puestos de dirección.", "b) Reducir a la mitad la brecha de género en investigación.", "c) Reducir, al menos, en un 2% la brecha de género existente en las medidas de conciliación para cuidados.", "d) Aumentar el número de investigaciones con perspectiva de género interseccional en un 4%."], c: 2 },
+        { e: "251.- ¿Cuál fue el objetivo del I Plan de Igualdad, teniendo en cuenta su condición de primer plan estratégico de Osakidetza en esta materia?", o: ["a) Consolidar los avances logrados y profundizar el proceso transformador.", "b) Establecer unos cimientos sólidos para garantizar el cumplimiento de la legislación y la alineación a los marcos estratégicos.", "c) Reducir la brecha salarial a la mitad en todas las categorías profesionales.", "d) Lograr la aprobación por parte del Consejo de Dirección de Osakidetza en julio de 2025."], c: 1 },
+        { e: "252.- ¿Cuál es la Meta 5 establecida en el II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028)?", o: ["a) Reducir la brecha de género existente en las medidas de conciliación para cuidados.", "b) Capacitación en Igualdad, garantizando la formación progresiva del personal.", "c) Igualdad Salarial, con el objetivo de reducir a la mitad las categorías que tienen una brecha retributiva > 5%.", "d) Investigación, aumentando el número de investigaciones con perspectiva de género."], c: 2 },
+        { e: "253.- ¿Cuál es el carácter y el propósito fundamental del II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028)?", o: ["a) Es un documento informativo sobre la normativa europea en materia de igualdad sin aplicación directa en la asistencia sanitaria.", "b) Se define como una guía de recomendaciones de adhesión voluntaria para las diferentes Organizaciones de Servicios.", "c) Se trata de un reglamento técnico dirigido exclusivamente al personal con funciones de gestión y dirección.", "d) Es un instrumento estratégico de planificación que busca integrar de forma transversal la perspectiva de género en la cultura y gestión de la organización."], c: 3 },
+        { e: "254.- El enfoque de 'interseccionalidad' mencionado en los fundamentos del II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028) implica:", o: ["a) Analizar cómo el género interactúa con otros factores (edad, origen, discapacidad, orientación sexual, etc.) para identificar formas específicas de discriminación.", "b) Tratar todas las desigualdades de forma aislada para evitar confusiones estadísticas.", "c) Fomentar el intercambio de personal entre diferentes centros hospitalarios para equilibrar la plantilla.", "d) Priorizar la atención sanitaria en las intersecciones de las grandes áreas metropolitanas"], c: 0 },
+
+        { e: "255.- En relación con la violencia machista contra las mujeres, el II Plan para la Igualdad de Mujeres y Hombres en Osakidetza (2025-2028) establece como línea de actuación prioritaria:", o: ["a) El refuerzo de la prevención, la detección precoz y la mejora de la respuesta asistencial integrada desde el sistema de salud.", "b) La derivación inmediata de cualquier caso detectado a servicios jurídicos externos, sin intervención del personal sanitario.", "c) La creación de un registro anónimo donde las personas profesionales puedan denunciar conductas sin seguimiento posterior.", "d) La limitación de la atención asistencial únicamente a las consecuencias físicas derivadas de la violencia."], c: 0 },
+        { e: "256.- Tal y como dispone el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028:", o: ["a) La rotulación fija, tanto interna como externa, en general ha de estar en las dos lenguas oficiales dando prioridad al euskera.", "b) Solo la rotulación fija externa en general ha de estar en las dos lenguas oficiales dando prioridad al euskera.", "c) Solo la rotulación fija interna en general ha de estar en las dos lenguas oficiales dando prioridad al euskera.", "d) La rotulación fija, tanto interna como externa, debe aparecer únicamente en euskera."], c: 0 },
+        { e: "257.- El III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028 establece respecto a los mensajes audiovisuales que:", o: ["a) Deben emitirse en la lengua que decidan las personas responsable de las unidades que utilizan estos sistemas audiovisuales.", "b) Deben emitirse en las dos lenguas oficiales, primero en castellano y luego en euskera.", "c) Deben emitirse en las dos lenguas oficiales, primero en euskera y luego en castellano.", "d) Deben emitirse en una de las dos lenguas oficiales."], c: 2 },
+        { e: "258.- Conforme al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, respecto a las páginas Web de Osakidetza señale cuál de las siguientes repuestas no es correcta:", o: ["a) En las intranet, extranet y otros sitios web de Osakidetza las personas usuarias deben tener garantizada la navegación y el acceso a toda la información en las dos lenguas oficiales.", "b) El personal administrador de los sitios web nunca publicará textos o contenidos que no estén en las dos lenguas oficiales.", "c) Al acceder por primera vez a una página web de Osakidetza, la página de inicio se mostrará por defecto en euskera.", "d) Las personas usuarias de los sitios web de Osakidetza deberán tener fácil acceso a los apartados sobre normalización del euskera en la entidad."], c: 1 },
+        { e: "259.- De acuerdo con el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, señale la respuesta correcta:", o: ["a) Por aplicación de la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales no puede constar en los datos personales de cada paciente de Osakidetza su idioma de preferencia para las comunicaciones con Osakidetza.", "b) El signo azul con la letra e indica que la persona paciente no tiene competencia para comunicarse en un idioma que no sea el euskera para las comunicaciones orales con Osakidetza.", "c) En los datos personales de cada paciente, se registrará su idioma de preferencia para las comunicaciones orales con Osakidetza .", "d) A las personas que elijan el euskera como lengua prioritaria en sus comunicaciones con Osakidetza solo se les deberá ofrecer servicios en euskera."], c: 2 },
+        { e: "260.- En atención al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, señale la respuesta correcta:", o: ["a) “Aukeratu zeure hizkuntza/Elige tu lengua” es el lema de la campaña de activación del registro de la lengua preferente de cada paciente llevada a cabo en 2017.", "b) Se atribuye a todas las direcciones y gerencias de Osakidetza la responsabilidad de realizar la campaña con el lema “Aukeratu zeure hizkuntza/Elige tu lengua”.", "c) “Aukeratu zeure hizkuntza/Elige tu lengua” es el lema de la campaña de activación del registro de la lengua preferente de cada paciente que realizará Osakidetza durante el primer año de planificación.", "d) “Aukeratu zeure hizkuntza/Elige tu lengua” es el lema de la campaña de activación del registro de la lengua preferente de cada paciente que realizará Osakidetza durante el tercer año de planificación."], c: 2 }
+
+    ];
+
+
+        // random 
+        for (let i = banco.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [banco[i], banco[j]] = [banco[j], banco[i]];
+        }
+
+        //fin random
+
+
+        let actual = 0;
+        let puntos = 0;
+        let respondido = false;
+
+        function mostrar() {
+            const p = banco[actual];
+            document.getElementById("info").innerText = `Pregunta ${actual + 1} de ${banco.length} | Puntos: ${puntos}`;
+            document.getElementById("pregunta").innerText = p.e;
+            let html = "";
+            p.o.forEach((opt, i) => {
+                html += `<div class="option" id="opt${i}" onclick="select(${i})">${opt}</div>`;
+            });
+            document.getElementById("opciones").innerHTML = html;
+            document.getElementById("btn").innerText = "Comprobar";
+            respondido = false;
+            window.selectedOpt = -1;
+        }
+
+        function select(i) {
+            if(respondido) return;
+            window.selectedOpt = i;
+            for(let j=0; j<4; j++) document.getElementById("opt"+j).style.border = "1px solid #ccc";
+            document.getElementById("opt"+i).style.border = "3px solid #326eb4";
+        }
+
+        function checkOrNext() {
+            if(!respondido) {
+                if(window.selectedOpt === -1) return;
+                respondido = true;
+                const p = banco[actual];
+                if(window.selectedOpt === p.c) puntos++;
+                document.getElementById("opt"+p.c).classList.add("correct");
+                if(window.selectedOpt !== p.c) document.getElementById("opt"+window.selectedOpt).classList.add("wrong");
+                document.getElementById("btn").innerText = "Siguiente";
+            } else {
+            actual++;
+            if (actual < banco.length) {
+                mostrar();
+            } else {
+                document.getElementById("pregunta").innerText = "Fin del cuestionario";
+                document.getElementById("opciones").innerHTML = 
+                    `<p style="text-align:center; font-size:1.2rem;">
+                        Puntuación final: <strong>${puntos} / ${banco.length}</strong>
+                    </p>`;
+                document.getElementById("btn").style.display = "none";
+            }
+        }
+        }
+        mostrar();
+    </script>
+</body>
+</html>
