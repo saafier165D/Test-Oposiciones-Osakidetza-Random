@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OPE Osakidetza</title>
+    <style>
+        /*estilos para Movil*/
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 10px; 
+            background: #ebf5ff; 
+            margin: 0; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .card { 
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%; 
+            max-width: 500px;
+            margin: 20px auto; 
+        }
+
+        #info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #pregunta {
+            font-size: 1.2rem; 
+            line-height: 1.4;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .option { 
+            display: block; 
+            padding: 18px; 
+            margin: 12px 0; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .correct { background: #d4ffd4 !important; border-color: #28a745 !important; }
+        .wrong { background: #ffd4d4 !important; border-color: #dc3545 !important; }
+
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: #326eb4; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            margin-top: 10px;
+            -webkit-appearance: none; 
+            appearance: none; 
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="info"></div>
+        <h3 id="pregunta"></h3>
+        <div id="opciones"></div>
+        <button id="btn" onclick="checkOrNext()">Comprobar</button>
+    </div>
+
+    <script>
+    const banco = [
+        { e: "51.- La camilla de traslado tiene una serie de características: Indique la respuesta INCORRECTA:", o: ["a) Pueden incorporar chasis para la realización de radiografías.", "b) No permite instalar portasueros.", "c) Lleva vallas laterales escamoteables.", "d) Lleva portabalas de oxígeno."], c: 1 },
+        { e: "52.- Cuando utilizamos una camilla tijera tenemos que tener en cuenta que:", o: ["a) Se debe colocar entre cuatro personas mínimo, ya que sirve para inmovilizar.", "b) El plano donde se encuentra el paciente tiene que estar horizontal.", "c) El plano donde se encuentra el paciente tiene que estar semi sentado.", "d) Se debe utilizar inseparablemente junto a las correas de sujeción."], c: 1 },
+        { e: "53.- Cuando utilizamos las correas de sujeción, en una sujeción lateral:", o: ["a) Solo permite fijar el cuerpo del paciente en decúbito supino.", "b) No impide que el cuerpo del paciente ruede de manera lateral.", "c) Permite fijar el cuerpo del paciente en decúbito supino y lateral, pero no permite en decúbito prono.", "d) Todas son incorrectas."], c: 3 },
+        { e: "54.- Con respecto a la silla de ruedas: Indique la respuesta INCORRECTA:", o: ["a) Cubrir al paciente por delante cuando vaya sentado y con camisón.", "b) Poner al paciente en contacto directo con el cuero de la silla, para evitar que se resbale.", "c) Evitar que el paciente se desplace por encima de los reposapiés al incorporarse.", "d) Tener precaución con las sondas ya que se podrían enganchar en las ruedas."], c: 1 },
+        { e: "55.- Señala la correcta con respecto al manejo de la silla de ruedas en la entrada y la salida del ascensor:", o: ["a) Para entrar se hará de frente al ascensor y para salir saldremos de frente a la puerta.", "b) Para entrar se hará de espaldas al ascensor y para salir saldremos de espaldas a la puerta.", "c) Para entrar se hará de frente al ascensor y para salir lo haremos de espaldas.", "d) Para entrar se hará de espaldas al ascensor y para salir saldremos de frente a la puerta."], c: 3 },
+        { e: "56.- ¿Dónde se sitúan las sillas de ruedas dentro del hospital?", o: ["a) En la entrada principal exclusivamente.", "b) Se ubicarán en las entradas al hospital y en las unidades de hospitalización.", "c) En las entradas de urgencias pediátricas y de adultos exclusivamente.", "d) En la zona de quirófanos, la UCI y las urgencias exclusivamente."], c: 1 },
+        { e: "57.- ¿Qué elemento NO se encuentra dentro de los accesorios que puede llevar una silla de ruedas?", o: ["a) Tabla que sirve para que los pacientes no puedan doblar el brazo.", "b) Portabalas.", "c) Portasueros.", "d) Bolsa portadocumentos."], c: 0 },
+        { e: "58.- ¿Qué particularidad presenta la mesa de quirófano?", o: ["a) Puede ser articulada y el cabecero es escamoteable para que el médico pueda intubar.", "b) Es desmontable para que se pueda limpiar y desinfectar con tranquilidad.", "c) Permite la movilización total de las extremidades del paciente en función de la intervención de que se trate.", "d) Todas son correctas."], c: 2 },
+        { e: "59.- En una bombona o bala de oxígeno portátil, ¿dónde se conecta el tubo de las gafas nasales?", o: ["a) En la parte frontal hay una toma de salida de oxígeno.", "b) En la parte posterior hay una toma de salida.", "c) En la conexión de pared, en el humidificador.", "d) En la parte superior, junto al regulador de caudal."], c: 0 },
+        { e: "60.- ¿Para qué sirve un balón de insuflación (AMBU)?", o: ["a) Para la ventilación de personas con problemas respiratorios graves.", "b) Para la ventilación de personas con problemas respiratorios leves.", "c) Para la ventilación manual de paciente que precise reanimación.", "d) Para la ventilación manual de pacientes que se encuentran con un ataque de ansiedad."], c: 2 },
+        { e: "61.- ¿Para qué sirve una bomba de perfusión?", o: ["a) Para introducir alimentos por vía nasogástrica.", "b) Para introducir de forma lenta y continua una sustancia medicamentosa por vía intravenosa.", "c) Para introducir alimentos por vía intravenosa.", "d) Para introducir de forma lenta y continua una sustancia medicamentosa por vía nasogástrica."], c: 1 },
+        
+        { e: "62.- ¿Cómo se denomina al colchón que evita la aparición en el paciente de úlceras por presión?", o: ["a) Colchón para estancias prolongadas.", "b) Colchón de aire.", "c) Colchón anti-presión.", "d) Colchón anti-escaras."], c: 3 },
+        { e: "63.- A el armazón metálico utilizado en camas traumatológicas se le denomina:", o: ["a) Arco de protección.", "b) Bastidor de Stryker.", "c) Cuadro balcánico.", "d) Arco salvasábanas."], c: 2 },
+        { e: "64.- ¿Qué tipo de férulas se utiliza para realizar, junto con las pesas, tracción en los miembros inferiores?", o: ["a) Férula de Tracción bimodal.", "b) Férula de Matrix.", "c) Férula de Brown.", "d) Férula Rígida."], c: 2 },
+        { e: "65.- ¿Para qué sirve la tabla de paradas?", o: ["a) Es una superficie dura para acostar al paciente sobre una camilla.", "b) Es una superficie dura para acostar al paciente sobre una silla.", "c) Es una superficie dura para personas con múltiples traumatismos.", "d) Es una superficie dura para acostar al paciente sobre el suelo."], c: 0 },
+        { e: "66.- ¿Cómo se denomina el aparato que se utiliza para ver, diagnosticar y tratar problemas en la cavidad pélvico-abdominal?", o: ["a) Aparato de escopia.", "b) Electrocardiógrafo.", "c) Torre de laparoscopia.", "d) Ecógrafo."], c: 2 },
+        { e: "67.- El término hiperglucemia hace referencia a:", o: ["a) Defecto de la glucosa en sangre.", "b) Exceso de glucosa en sangre.", "c) Nivel normal de glucosa en sangre.", "d) Todas son correctas."], c: 1 },
+        { e: "68.- El término hemiplejia hacer referencia a:", o: ["a) Parálisis de un lado del cuerpo.", "b) Parálisis de todo el cuerpo.", "c) Parálisis de una extremidad superior.", "d) Parálisis de una extremidad inferior."], c: 0 },
+        { e: "69.- A la definición referente al hígado le corresponde el prefijo:", o: ["a) Bio-.", "b) Bradi-.", "c) Endo.", "d) Hepat-."], c: 3 },
+        
+        { e: "70.- A la definición referente a los huesos le corresponde el prefijo:", o: ["a) Intra-.", "b) Necro-.", "c) Osteo-.", "d) Poli-."], c: 2 },
+        { e: "71.- El sufijo ITIS se corresponde con la definición:", o: ["a) Medicamento.", "b) Inflamación.", "c) Dolor.", "d) Célula."], c: 1 },
+        { e: "72.- El sufijo que indica que el término es referente a la mama, es:", o: ["a) Grafía.", "b) Mastia.", "c) Algia.", "d) Megalia."], c: 1 },
+        { e: "73.- ¿Qué siglas se corresponden a la prueba de Electrocardiograma?", o: ["a) A.F.G.", "b) T.A.C.", "c) E.C.G.", "d) E.M.G."], c: 2 },
+        { e: "74.- ¿Qué siglas corresponden a la Unidad de Reanimación Post Anestésica?", o: ["a) S.R.P.A.", "b) R.P.A.", "c) U.R.P.A.", "d) R.P.A.N."], c: 2 },
+        { e: "75.- ¿Qué siglas corresponden a la Enfermedad Pulmonar Obstructiva Crónica?", o: ["a) E.P.O.T.", "b) E.P.O.D.", "c) P.O.C.D.", "d) E.P.O.C."], c: 3 },   
+        
+        { e: "76.- La especialidad médica que se ocupa de las afecciones del corazón y aparato circulatorio:", o: ["a) Cardiología.", "b) Neurología.", "c) Nefrología.", "d) Endocrinología."], c: 0 },
+        { e: "77.- La especialidad médica que tiene como función llevar a la normalidad funcional y anatómica la cobertura corporal, es decir la forma del cuerpo:", o: ["a) Cirugía plástica.", "b) Cirugía vascular.", "c) Cirugía cardiovascular.", "d) Cirugía general."], c: 0 },
+        { e: "78.- Hace referencia al estudio y tratamiento de enfermedades de la sangre:", o: ["a) Nefrología.", "b) Dermatología.", "c) Obstetricia.", "d) Hematología."], c: 3 },
+        { e: "79.- La formación quirúrgica de un ano artificial, o estoma, a través del abdomen con el fin de evacuar el contenido intestinal, se denomina:", o: ["a) Edema", "b) Úlcera.", "c) Melena.", "d) Colostomía."], c: 3 },
+        { e: "80.- ¿Cómo se denomina al recipiente de borde plano y ancho utilizado por el paciente para excretar en posición de decúbito supino?", o: ["a) Cuña.", "b) Batea.", "c) Botella.", "d) Orinal."], c: 0 },
+        { e: "81.- ¿Qué prueba estudia la función respiratoria?", o: ["a) Electrocardiograma.", "b) Espirometría.", "c) Endoscopia.", "d) Ecografía."], c: 1 },
+        { e: "82.- El término paraplejia, se corresponde con la siguiente definición:", o: ["a) Parálisis de los miembros o extremidades inferiores (de la cintura hacia abajo).", "b) Parálisis de las cuatro extremidades.", "c) Parálisis del hemicuerpo derecho.", "d) Parálisis del hemicuerpo izquierdo."], c: 0 },
+        
+        { e: "83.- El tubo que, introducido por el meato, llega hasta la vejiga, se denomina:", o: ["a) Sonda nasogástrica.", "b) Sonda vesical.", "c) a) y b) son incorrectas.", "d) a) y b) son correctas."], c: 1 },
+        { e: "84.- La lesión secundaria de la piel, con pérdida de sustancia, muy profunda, que ocupa la dermis, epidermis e hipodermis, se denomina:", o: ["a) Herida.", "b) Úlcera.", "c) Mácula.", "d) Pústula."], c: 1 },
+        { e: "85.- Cualquier suceso no esperado ni deseado que da lugar a la pérdida de la salud o lesiones a los trabajadores, se denomina:", o: ["a) Accidente de trabajo.", "b) Incidente.", "c) a) y b) son correctas.", "d) a) y b) son incorrectas."], c: 0 },
+        { e: "86.- Para colocar al paciente el arnés de una grúa desde la posición sentado en una silla:", o: ["a) Colocar el arnés de abajo-arriba, por detrás y por debajo de una sábana entremetida, hasta la altura de la cintura.", "b) Colocar el arnés de arriba-abajo, por detrás y por debajo de una sábana entremetida, hasta la altura de la cintura.", "c) Colocar el arnés de arriba-abajo, por delante y por encima de una sábana entremetida, hasta la altura de la cintura.", "d) Colocar el arnés de abajo-arriba, por delante y por encima de una sábana entremetida, hasta la altura de la cintura."], c: 1 },
+        { e: "87.- El término taquicardia hace referencia a:", o: ["a) Aceleración del ritmo cardíaco.", "b) Disminución del ritmo cardíaco.", "c) Aceleración de la frecuencia respiratoria.", "d) Disminución de la frecuencia respiratoria."], c: 0 },
+        { e: "88.- El término disnea, se corresponde con la siguiente definición:", o: ["a) Dificultad para deglutir.", "b) Dificultad para hablar.", "c) Dificultad para respirar.", "d) Dificultad para articular palabras."], c: 2 },
+        
+        { e: "89.- ¿Cómo se denomina el carro que sirve para el depósito del material sanitario necesario para realizar las curas a los pacientes?", o: ["a) Carro de curas.", "b) Carro de material.", "c) Carro sanitario.", "d) Carro de farmacia."], c: 0 },
+        { e: "90.- La sujeción abdominal de las correas de sujeción:", o: ["a) Se puede instalar antes o después de que el paciente se haya acostado.", "b) Se debe instalar siempre antes de que el paciente se acueste.", "c) Se debe instalar siempre después de que el paciente se acueste.", "d) Se debe instalar con la cama vacía."], c: 0 },
+        { e: "91.- En cuanto a la utilización de rolón o rollbord:", o: ["a) En el desplazamiento no deberemos mantener el eje cabeza-pies recto.", "b) En el desplazamiento deberemos mantener el eje cabeza-pies recto.", "c) Se ladea totalmente al paciente para apoyarlo en el centro del rolón.", "d) b) y c) son incorrectas."], c: 1 },
+        { e: "92.- La bombona de oxígeno consta de varias partes, entre las que se encuentran:", o: ["a) Un manómetro, que mide la presión que hay en la botella.", "b) Un tirador de apertura.", "c) En un lateral, hay una leyenda sobre las instrucciones de uso y seguridad.", "d) Todas las respuestas son correctas."], c: 3 },
+        { e: "93.- Según las normas generales de movilización de pacientes, ¿cuál de las siguientes actuaciones se considera obligatoria?", o: ["a) Priorizar la rapidez del traslado del paciente.", "b) Guardar en todo momento la intimidad del paciente.", "c) Informar al paciente solo si colabora activamente.", "d) Evitar cualquier movilización siempre si el paciente presenta dolor."], c: 1 },
+        
+        { e: "94.- En cuanto a los pasos previos a la movilización del paciente, ¿qué acción debe realizarse antes de dicha movilización?", o: ["a) Colocar al paciente en posición Fowler siempre que sea posible.", "b) Frenar la cama.", "c) Solicitar autorización médica por escrito.", "d) Comprobar las constantes vitales del paciente."], c: 1 },
+        { e: "95.- Al realizar el traslado del paciente en silla de ruedas, señale la afirmación INCORRECTA:", o: ["a) Comprobar el correcto funcionamiento de la silla antes de usarla.", "b) Informar al paciente del procedimiento que se va a realizar.", "c) Colocar los reposapiés antes de sentar al paciente.", "d) Asegurar que los frenos estén puestos durante las transferencias."], c: 2 },
+        { e: "96.- El parte interno de notificación de accidente/incidente es:", o: ["a) El documento opcional para comunicar verbalmente un suceso.", "b) El registro necesario para declarar un accidente de trabajo, un incidente o una agresión, y que sea reconocido legalmente.", "c) Un informe médico emitido por la Mutua.", "d) Un documento exclusivo para accidentes con baja laboral."], c: 1 },
+        { e: "97.- Según el manual de prevención de incendios, el polvo polivalente es:", o: ["a) El agente extintor más seguro para su uso.", "b) Adecuado únicamente para fuegos de materiales sólidos (A).", "c) El agente extintor por excelencia por su eficacia y abundancia para fuegos de materiales sólidos (A).", "d) Ineficaz contra brasas."], c: 0 },
+        { e: "98.- Ante una situación de emergencia relacionada con un incendio, el trabajador debe:", o: ["a) Abandonar el centro inmediatamente sin avisar.", "b) Confirmar la emergencia, informar a su responsable e intentar sofocar el conato de incendio con ayuda del extintor.", "c) Esperar instrucciones sin intervenir.", "d) Utilizar agua siempre como primera opción."], c: 1 },
+        { e: "99.- El importe máximo de los adelantos de nómina a conceder será de:", o: ["a) 3.000 euros.", "b) 6.000 euros.", "c) 3.500 euros.", "d) 4.500 euros."], c: 3 },
+        { e: "100.- Cuando la duración de una jornada exceda de seis horas continuadas existirá un período de descanso de:", o: ["a) Diez minutos.", "b) Treinta minutos.", "c) Quince minutos.", "d) Veinte minutos."], c: 2 }
+
+
+    ];
+
+
+
+        // random 
+        for (let i = banco.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [banco[i], banco[j]] = [banco[j], banco[i]];
+        }
+
+        //fin random
+
+        let actual = 0;
+        let puntos = 0;
+        let respondido = false;
+
+        function mostrar() {
+            const p = banco[actual];
+            document.getElementById("info").innerText = `Pregunta ${actual + 1} de ${banco.length} | Puntos: ${puntos}`;
+            document.getElementById("pregunta").innerText = p.e;
+            let html = "";
+            p.o.forEach((opt, i) => {
+                html += `<div class="option" id="opt${i}" onclick="select(${i})">${opt}</div>`;
+            });
+            document.getElementById("opciones").innerHTML = html;
+            document.getElementById("btn").innerText = "Comprobar";
+            respondido = false;
+            window.selectedOpt = -1;
+        }
+
+        function select(i) {
+            if(respondido) return;
+            window.selectedOpt = i;
+            for(let j=0; j<4; j++) document.getElementById("opt"+j).style.border = "1px solid #ccc";
+            document.getElementById("opt"+i).style.border = "3px solid #326eb4";
+        }
+
+        function checkOrNext() {
+            if(!respondido) {
+                if(window.selectedOpt === -1) return;
+                respondido = true;
+                const p = banco[actual];
+                if(window.selectedOpt === p.c) puntos++;
+                document.getElementById("opt"+p.c).classList.add("correct");
+                if(window.selectedOpt !== p.c) document.getElementById("opt"+window.selectedOpt).classList.add("wrong");
+                document.getElementById("btn").innerText = "Siguiente";
+            } else {
+            actual++;
+            if (actual < banco.length) {
+                mostrar();
+            } else {
+                document.getElementById("pregunta").innerText = "Fin del cuestionario";
+                document.getElementById("opciones").innerHTML = 
+                    `<p style="text-align:center; font-size:1.2rem;">
+                        Puntuación final: <strong>${puntos} / ${banco.length}</strong>
+                    </p>`;
+                document.getElementById("btn").style.display = "none";
+            }
+        }
+        }
+        mostrar();
+    </script>
+</body>
+</html>

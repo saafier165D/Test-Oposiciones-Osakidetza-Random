@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OPE Osakidetza</title>
+    <style>
+        /*estilos para Movil*/
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 10px; 
+            background: #ebf5ff; 
+            margin: 0; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .card { 
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%; 
+            max-width: 500px;
+            margin: 20px auto; 
+        }
+
+        #info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #pregunta {
+            font-size: 1.2rem; 
+            line-height: 1.4;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .option { 
+            display: block; 
+            padding: 18px; 
+            margin: 12px 0; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .correct { background: #d4ffd4 !important; border-color: #28a745 !important; }
+        .wrong { background: #ffd4d4 !important; border-color: #dc3545 !important; }
+
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: #326eb4; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            margin-top: 10px;
+            -webkit-appearance: none; 
+            appearance: none; 
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="info"></div>
+        <h3 id="pregunta"></h3>
+        <div id="opciones"></div>
+        <button id="btn" onclick="checkOrNext()">Comprobar</button>
+    </div>
+
+    <script>
+    const banco = [
+        { e: "101.- El personal liberado para el estudio del euskera podrá percibir:", o: ["a) El 50% de las retribuciones fijas.", "b) El 75% de las retribuciones totales, tanto fijas como variables, que por cartelera tenga asignadas.", "c) El 100% de las retribuciones fijas.", "d) El 100% de las retribuciones, tanto fijas como variables, que por cartelera tenga asignadas."], c: 3 },
+        { e: "102.- En caso de agresión, el trabajador o trabajadora deberá:", o: ["a) Comunicarlo exclusivamente a la Mutua.", "b) Ponerlo en conocimiento de en el menor plazo de tiempo posible a su responsable inmediato.", "c) Esperar a que la Dirección abra expediente.", "d) Comunicarlo únicamente a los Delegados de Prevención."], c: 1 },
+        { e: "103.- Los fuegos de clase C son aquellos que se producen en:", o: ["a) Materiales sólidos que dejan brasas.", "b) Líquidos inflamables.", "c) Gases inflamables.", "d) Metales combustibles."], c: 2 },
+        { e: "104.- Según el Decreto 255/1997 ¿qué es el Ente Público Osakidetza-Servicio vasco de salud?", o: ["a) Una sociedad anónima de capital mixto.", "b) Un organismo autónomo estatal.", "c) El Ente Institucional de la Comunidad Autónoma, de naturaleza pública y bajo la calificación de Ente Público de Derecho Privado.", "d) Una fundación sanitaria privada."], c: 2 },
+        
+        
+        { e: "105.- ¿Qué posición se utiliza específicamente para el lavado de pelo y la RCP?", o: ["a) Fowler.", "b) Roser.", "c) Sims.", "d) Antitrendelemburg."], c: 1 },
+        { e: "106.- En el movimiento de cama a sillón con paciente colaborador, ¿qué debe hacerse antes de sentarlo al borde de la cama?", o: ["a) Colocar la silla a 90°.", "b) Incorporar el cabezal en Fowler.", "c) Retirar la entremetida.", "d) Ajustar el trapecio."], c: 1 },
+        { e: "107.- Corresponde a cada organización de servicios del Ente Público Osakidetza-Servicio vasco de salud:", o: ["a) Únicamente funciones asistenciales clínicas.", "b) El ejercicio de todas las facultades de gestión y administración necesarias para la provisión de servicios sanitarios encomendados.", "c) Aprobar el Plan Estratégico del Ente.", "d) Elaborar los Presupuestos Generales de la Comunidad Autónoma."], c: 1 },
+        { e: "108.- ¿Qué acción ayuda a prevenir accidentes por orden y limpieza?", o: ["a) Dejar material en zonas de paso.", "b) Mantener objetos cerca para tenerlos a mano.", "c) No dejar objetos en zonas de paso.", "d) Guardar solo el material pesado."], c: 2 },
+        { e: "109.- ¿Qué requisito es imprescindible antes de entrar en áreas con radiación ionizante?", o: ["a) Llevar ropa blanca.", "b) Usar dosímetro personal.", "c) No llevar objetos metálicos.", "d) Haber comido previamente."], c: 1 },
+        { e: "110.- ¿Qué acción debe evitarse al manejar agujas?", o: ["a) Desecharlas en contenedores.", "b) Reencapucharlas para tirarlas con mayor seguridad.", "c) Usar guantes.", "d) Todas son correctas."], c: 1 },
+        
+        { e: "111.- El arnés se utiliza junto con:", o: ["a) Silla convencional.", "b) Bastón.", "c) Grúa.", "d) Camilla simple."], c: 2 },
+        { e: "112.- Según el Decreto 255/1997, Osakidetza es el Ente Institucional de la Comunidad Autónoma, bajo la calificación de:", o: ["a) Ente privado de Derecho Privado.", "b) Ente privado de Derecho Público.", "c) Ente público de Derecho Público.", "d) Ente público de Derecho Privado."], c: 3 },
+        { e: "113.- ¿Cuál NO es uno de los fines de interés general del Ente Público Osakidetza-Servicio vasco de salud?", o: ["a) Ejecutar la provisión del servicio público sanitario mediante las prestaciones de asistencia primaria y especializada que sean objeto de aseguramiento y contratación pública.", "b) Garantizar el trato equitativo de las personas residentes en la Comunidad Autónoma del País Vasco mediante solo la emisión de tarjetas sanitarias.", "c) Proporcionar a las personas que accedan a sus servicios las condiciones necesarias para el pleno ejercicio de sus derechos y deberes de carácter instrumental o complementario.", "d) Promover la docencia en ciencias de la salud."], c: 1 },
+        { e: "114.- La organización rectora de Osakidetza está comprendida por:", o: ["a) Presidente y Consejo Administración.", "b) Presidente, secretario y Consejo de Administración.", "c) Viceconsejero, gerente y Consejo de Administración.", "d) Director ejecutivo, secretario y Consejo de Administración."], c: 0 },
+        { e: "115.- Dentro del organigrama de Osakidetza, ¿qué función le corresponde al Consejero de Sanidad?", o: ["a) Gerencia.", "b) Presidencia.", "c) Director ejecutivo.", "d) Secretario."], c: 1 },
+        { e: "116.- ¿Quiénes forman parte del Consejo de Administración de Osakidetza?", o: ["a) El Viceconsejero y tres miembros nombrados por el Consejero de Hacienda.", "b) El gerente y cuatro miembros en representación de la Administración del Estado.", "c) El consejero de Hacienda y tres miembros a propuesta del Consejero de Sanidad.", "d) El presidente y cinco miembros en representación de la administración de la Comunidad Autónoma."], c: 3 },
+        { e: "117.- Según el Decreto 255/1997, las organizaciones de servicios sanitarios dependientes del Ente Público Osakidetza-Servicio vasco de salud realizarán la actividad de provisión de servicios sanitarios, actuando a tal efecto, ¿bajo qué principio?", o: ["a) Principio de equidad.", "b) Principio de reciprocidad.", "c) Principio de autonomía económico-financiera y de gestión.", "d) Principio de igualdad."], c: 2 },
+        
+        { e: "118.- El Consejo de Administración del Ente Público, al objeto de preservar los criterios de eficacia y eficiencia en la gestión, adoptará las medidas de intervención que considere necesarias sobre las organizaciones de servicios. Estas pueden ser:", o: ["a) Suspender temporalmente, y con carácter total o parcial, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público.", "b) No podrá suspender en ningún caso las facultades de gestión.", "c) Suspender temporalmente, y de manera exclusivamente parcial, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público.", "d) Suspender temporalmente, y de manera exclusivamente total, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público."], c: 0 },
+        { e: "119.- ¿Cuál de las siguientes afirmaciones NO son funciones del Consejo Técnico que va a desarrollar dentro de las previsiones del Plan Estratégico de la Organización?", o: ["a) Propuesta de líneas de actuación en materia de investigación, docencia y formación.", "b) Valoración de nuevas estrategias asistenciales, diagnósticas y terapéuticas.", "c) Formulación de políticas, propuestas y recomendaciones referidas a la calidad asistencial.", "d) Conocer y participar en el plan de salud de la zona."], c: 3 },
+        { e: "120.- ¿Cómo está establecido el periodo de descanso?", o: ["a) En descanso diario, con un periodo mínimo ininterrumpido de 12 horas y descanso semanal, con periodo mínimo ininterrumpido de 24 horas semanales.", "b) En descanso diario, con un periodo mínimo ininterrumpido de 8 horas y descanso semanal, con periodo mínimo ininterrumpido de 36 horas semanales.", "c) En descanso diario, con un periodo mínimo ininterrumpido de 8 horas y descanso semanal, con periodo mínimo ininterrumpido de 24 horas semanales.", "d) En descanso diario, con un periodo mínimo ininterrumpido de 12 horas y descanso semanal, con periodo mínimo ininterrumpido de 32 horas semanales."], c: 0 },
+        { e: "121.- Con respecto a las vacaciones, el personal tendrá derecho a disfrutar durante cada año completo de servicio de una vacación retribuida de:", o: ["a) 30 días laborales sin computarse los sábados como laborales.", "b) 30 días laborales computándose los sábados como laborales.", "c) 28 días laborales sin computarse los sábados como laborales.", "d) 28 días laborales computándose los sábados como laborales."], c: 3 },
+        { e: "122.- En el supuesto de que estando disfrutando las vacaciones el personal iniciara una situación de IT (incapacidad temporal), ¿qué sucede con el periodo vacacional?", o: ["a) El periodo vacacional quedará interrumpido.", "b) Con contratos de sustitución, se pierde el periodo vacacional.", "c) Solo al personal estatutario se le interrumpe el periodo vacacional.", "d) El periodo vacacional no quedará interrumpido."], c: 0 },
+        { e: "123.- En todas las Organizaciones de servicios se establecerán anualmente, previa negociación, los calendarios de días laborables anuales y los horarios de trabajo. ¿Quiénes realizan dicha negociación?", o: ["a) El personal estatutario y los representantes del personal.", "b) La Dirección y la Viceconsejería de Sanidad.", "c) El personal estatutario y el personal interino.", "d) La Dirección y los representantes del personal."], c: 3 },
+
+        { e: "101.- El personal liberado para el estudio del euskera podrá percibir:", o: ["a) El 50% de las retribuciones fijas.", "b) El 75% de las retribuciones totales, tanto fijas como variables, que por cartelera tenga asignadas.", "c) El 100% de las retribuciones fijas.", "d) El 100% de las retribuciones, tanto fijas como variables, que por cartelera tenga asignadas."], c: 3 },
+        { e: "102.- En caso de agresión, el trabajador o trabajadora deberá:", o: ["a) Comunicarlo exclusivamente a la Mutua.", "b) Ponerlo en conocimiento de en el menor plazo de tiempo posible a su responsable inmediato.", "c) Esperar a que la Dirección abra expediente.", "d) Comunicarlo únicamente a los Delegados de Prevención."], c: 1 },
+        { e: "103.- Los fuegos de clase C son aquellos que se producen en:", o: ["a) Materiales sólidos que dejan brasas.", "b) Líquidos inflamables.", "c) Gases inflamables.", "d) Metales combustibles."], c: 2 },
+        { e: "104.- Según el Decreto 255/1997 ¿qué es el Ente Público Osakidetza-Servicio vasco de salud?", o: ["a) Una sociedad anónima de capital mixto.", "b) Un organismo autónomo estatal.", "c) El Ente Institucional de la Comunidad Autónoma, de naturaleza pública y bajo la calificación de Ente Público de Derecho Privado.", "d) Una fundación sanitaria privada."], c: 2 },
+        { e: "105.- ¿Qué posición se utiliza específicamente para el lavado de pelo y la RCP?", o: ["a) Fowler.", "b) Roser.", "c) Sims.", "d) Antitrendelemburg."], c: 1 },
+        { e: "106.- En el movimiento de cama a sillón con paciente colaborador, ¿qué debe hacerse antes de sentarlo al borde de la cama?", o: ["a) Colocar la silla a 90°.", "b) Incorporar el cabezal en Fowler.", "c) Retirar la entremetida.", "d) Ajustar el trapecio."], c: 1 },
+        
+        { e: "107.- Corresponde a cada organización de servicios del Ente Público Osakidetza-Servicio vasco de salud:", o: ["a) Únicamente funciones asistenciales clínicas.", "b) El ejercicio de todas las facultades de gestión y administración necesarias para la provisión de servicios sanitarios encomendados.", "c) Aprobar el Plan Estratégico del Ente.", "d) Elaborar los Presupuestos Generales de la Comunidad Autónoma."], c: 1 },
+        { e: "108.- ¿Qué acción ayuda a prevenir accidentes por orden y limpieza?", o: ["a) Dejar material en zonas de paso.", "b) Mantener objetos cerca para tenerlos a mano.", "c) No dejar objetos en zonas de paso.", "d) Guardar solo el material pesado."], c: 2 },
+        { e: "109.- ¿Qué requisito es imprescindible antes de entrar en áreas con radiación ionizante?", o: ["a) Llevar ropa blanca.", "b) Usar dosímetro personal.", "c) No llevar objetos metálicos.", "d) Haber comido previamente."], c: 1 },
+        { e: "110.- ¿Qué acción debe evitarse al manejar agujas?", o: ["a) Desecharlas en contenedores.", "b) Reencapucharlas para tirarlas con mayor seguridad.", "c) Usar guantes.", "d) Todas son correctas."], c: 1 },
+        { e: "111.- El arnés se utiliza junto con:", o: ["a) Silla convencional.", "b) Bastón.", "c) Grúa.", "d) Camilla simple."], c: 2 },
+        { e: "112.- Según el Decreto 255/1997, Osakidetza es el Ente Institucional de la Comunidad Autónoma, bajo la calificación de:", o: ["a) Ente privado de Derecho Privado.", "b) Ente privado de Derecho Público.", "c) Ente público de Derecho Público.", "d) Ente público de Derecho Privado."], c: 3 },
+        
+        { e: "113.- ¿Cuál NO es uno de los fines de interés general del Ente Público Osakidetza-Servicio vasco de salud?", o: ["a) Ejecutar la provisión del servicio público sanitario mediante las prestaciones de asistencia primaria y especializada que sean objeto de aseguramiento y contratación pública.", "b) Garantizar el trato equitativo de las personas residentes en la Comunidad Autónoma del País Vasco mediante solo la emisión de tarjetas sanitarias.", "c) Proporcionar a las personas que accedan a sus servicios las condiciones necesarias para el pleno ejercicio de sus derechos y deberes de carácter instrumental o complementario.", "d) Promover la docencia en ciencias de la salud."], c: 1 },
+        { e: "114.- La organización rectora de Osakidetza está comprendida por:", o: ["a) Presidente y Consejo Administración.", "b) Presidente, secretario y Consejo de Administración.", "c) Viceconsejero, gerente y Consejo de Administración.", "d) Director ejecutivo, secretario y Consejo de Administración."], c: 0 },
+        { e: "115.- Dentro del organigrama de Osakidetza, ¿qué función le corresponde al Consejero de Sanidad?", o: ["a) Gerencia.", "b) Presidencia.", "c) Director ejecutivo.", "d) Secretario."], c: 1 },
+        { e: "116.- ¿Quiénes forman parte del Consejo de Administración de Osakidetza?", o: ["a) El Viceconsejero y tres miembros nombrados por el Consejero de Hacienda.", "b) El gerente y cuatro miembros en representación de la Administración del Estado.", "c) El consejero de Hacienda y tres miembros a propuesta del Consejero de Sanidad.", "d) El presidente y cinco miembros en representación de la administración de la Comunidad Autónoma."], c: 3 },
+        { e: "117.- Según el Decreto 255/1997, las organizaciones de servicios sanitarios dependientes del Ente Público Osakidetza-Servicio vasco de salud realizarán la actividad de provisión de servicios sanitarios, actuando a tal efecto, ¿bajo qué principio?", o: ["a) Principio de equidad.", "b) Principio de reciprocidad.", "c) Principio de autonomía económico-financiera y de gestión.", "d) Principio de igualdad."], c: 2 },
+        
+        { e: "118.- El Consejo de Administración del Ente Público, al objeto de preservar los criterios de eficacia y eficiencia en la gestión, adoptará las medidas de intervención que considere necesarias sobre las organizaciones de servicios. Estas pueden ser:", o: ["a) Suspender temporalmente, y con carácter total o parcial, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público.", "b) No podrá suspender en ningún caso las facultades de gestión.", "c) Suspender temporalmente, y de manera exclusivamente parcial, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público.", "d) Suspender temporalmente, y de manera exclusivamente total, las facultades de gestión que tienen atribuidas las organizaciones de servicios del Ente Público."], c: 0 },
+        { e: "119.- ¿Cuál de las siguientes afirmaciones NO son funciones del Consejo Técnico que va a desarrollar dentro de las previsiones del Plan Estratégico de la Organización?", o: ["a) Propuesta de líneas de actuación en materia de investigación, docencia y formación.", "b) Valoración de nuevas estrategias asistenciales, diagnósticas y terapéuticas.", "c) Formulación de políticas, propuestas y recomendaciones referidas a la calidad asistencial.", "d) Conocer y participar en el plan de salud de la zona."], c: 3 },
+        { e: "120.- ¿Cómo está establecido el periodo de descanso?", o: ["a) En descanso diario, con un periodo mínimo ininterrumpido de 12 horas y descanso semanal, con periodo mínimo ininterrumpido de 24 horas semanales.", "b) En descanso diario, con un periodo mínimo ininterrumpido de 8 horas y descanso semanal, con periodo mínimo ininterrumpido de 36 horas semanales.", "c) En descanso diario, con un periodo mínimo ininterrumpido de 8 horas y descanso semanal, con periodo mínimo ininterrumpido de 24 horas semanales.", "d) En descanso diario, con un periodo mínimo ininterrumpido de 12 horas y descanso semanal, con periodo mínimo ininterrumpido de 32 horas semanales."], c: 0 },
+        { e: "121.- Con respecto a las vacaciones, el personal tendrá derecho a disfrutar durante cada año completo de servicio de una vacación retribuida de:", o: ["a) 30 días laborales sin computarse los sábados como laborales.", "b) 30 días laborales computándose los sábados como laborales.", "c) 28 días laborales sin computarse los sábados como laborales.", "d) 28 días laborales computándose los sábados como laborales."], c: 3 },
+        { e: "122.- En el supuesto de que estando disfrutando las vacaciones el personal iniciara una situación de IT (incapacidad temporal), ¿qué sucede con el periodo vacacional?", o: ["a) El periodo vacacional quedará interrumpido.", "b) Con contratos de sustitución, se pierde el periodo vacacional.", "c) Solo al personal estatutario se le interrumpe el periodo vacacional.", "d) El periodo vacacional no quedará interrumpido."], c: 0 },
+        { e: "123.- En todas las Organizaciones de servicios se establecerán anualmente, previa negociación, los calendarios de días laborables anuales y los horarios de trabajo. ¿Quiénes realizan dicha negociación?", o: ["a) El personal estatutario y los representantes del personal.", "b) La Dirección y la Viceconsejería de Sanidad.", "c) El personal estatutario y el personal interino.", "d) La Dirección y los representantes del personal."], c: 3 },
+
+        { e: "124.- Las carteleras de trabajo específicas negociadas en cada unidad tendrán carácter obligatorio bimestral. ¿En qué casos se pueden modificar?", o: ["a) Cuando el jefe del servicio, previa petición de los trabajadores, así lo decida.", "b) Cuando el jefe del servicio lo decida, sin necesidad de petición de los trabajadores de su unidad.", "c) Por necesidades exclusivamente graves, urgentes o imprevisibles.", "d) Tras el aumento de la demanda de trabajo, ya sea por bajas o vacaciones."], c: 2 },
+        { e: "125.- Si quisieras solicitar una licencia, ¿ante quien se tiene que solicitar?", o: ["a) La Dirección de Recursos Humanos de la organización de servicios correspondiente.", "b) La Dirección de la Organización de Servicios correspondiente.", "c) La secretaria de la Organización.", "d) Primero ante la jefatura del servicio, posteriormente ante la Dirección de la Organización del servicio correspondiente."], c: 0 },
+        { e: "126.- En caso de realizar un acogimiento simple de un menor, ¿a qué tengo derecho?", o: ["a) A un permiso por asuntos propios.", "b) A una licencia retribuida.", "c) En caso de acogimiento no se tiene los mismos derechos que si fuera un alumbramiento.", "d) Todas son correctas."], c: 1 },
+        { e: "127.- La especialidad médica que se ocupa del estudio de la estructura y la función renal se denomina:", o: ["a) Cardiología.", "b) Neurología.", "c) Nefrología", "d) Endocrinología."], c: 2 },
+        { e: "128.- En caso de tener que asistir a exámenes académicos en un centro oficial en horario laboral, tendremos derecho a un permiso. ¿Dicho permiso de cuántos días será?", o: ["a) Un día natural por cada prueba de examen.", "b) Un día laboral por cada prueba de examen.", "c) Un día laboral independientemente de las pruebas de examen que tenga.", "d) No se tiene derecho a ningún día."], c: 0 },
+        { e: "129.- En caso de tener que acudir a una consulta médica durante la jornada laboral, tendremos derecho a:", o: ["a) Una licencia.", "b) Un permiso no retribuido y con un máximo de 4 horas, que podrá modificarse de manera excepcional.", "c) Un permiso retribuido y con un máximo de 4 horas, que podrá modificarse de manera excepcional.", "d) Un permiso no retribuido y con un máximo de 2 horas, que podrá modificarse de manera excepcional."], c: 2 },
+        
+        { e: "130.- La descripción 'paciente tumbado boca arriba, en un plano oblicuo de 45°, con la cabeza más baja que los pies' hace referencia a la posición:", o: ["a) Sims.", "b) Litotomía.", "c) Anti-trendelemburg.", "d) Trendelemburg."], c: 3 },
+        { e: "131.- Señala la INCORRECTA. Entre las competencias necesarias para el desempeño del puesto de celador/celadora se encuentran:", o: ["a) Orientación al paciente.", "b) Resolución de problemas.", "c) Competencias necesarias para proporcionar cuidados de calidad.", "d) Adaptación al cambio y contribución a la mejora."], c: 2 },
+        { e: "132.- ¿Cuál es la posición indicada en un parto?", o: ["a) Roser.", "b) Fowler.", "c) Sims o semiprona.", "d) Litotomía."], c: 3 },
+        { e: "133.- Son normas generales para la movilización de pacientes:", o: ["a) Retirar los objetos que nos molesten.", "b) Dejar acomodado al paciente.", "c) Evitar movimientos bruscos en la movilización del paciente.", "d) b) y c) son correctas."], c: 2 },
+        { e: "134.- Señala la respuesta INCORRECTA. Son pasos previos a toda movilización:", o: ["a) Verificar la seguridad del paciente.", "b) Colocar la cama en la posición que más nos ayude en la movilización del paciente.", "c) Retirar los objetos que nos molesten.", "d) Adoptar mecánica postural."], c: 0 },
+        { e: "135.- Señala la respuesta INCORRECTA. Son dispositivos y materiales para ayudar en la movilización:", o: ["a) Escabel.", "b) Rolón.", "c) Potencia.", "d) Férula de Brown."], c: 3 },
+        { e: "136.- A la hora de movilizar un paciente que no colabora hacia un lateral de la cama y posicionarlo en decúbito lateral izquierdo:", o: ["a) Comprobaremos que el brazo derecho no quede presionado debajo de su cuerpo.", "b) Comprobaremos que el brazo izquierdo no quede presionado debajo de su cuerpo.", "c) Comprobaremos que la pierna derecha no quede presionada debajo de su cuerpo.", "d) Comprobaremos que la pierna izquierda no quede presionada debajo de su cuerpo."], c: 1 },
+        
+        { e: "137.- Cuando realizamos el movimiento del paciente de plano a plano, en un procedimiento con dos o más personas:", o: ["a) Las personas se sitúan en el lado contrario del plano por donde vamos a hacer el movimiento.", "b) El cabecero de uno de los planos se coloca en el piecero del otro, o viceversa, para quedar los dos en ángulo recto y perpendiculares.", "c) Los cabeceros de ambos planos se colocan paralelamente.", "d) Las respuestas a) y b) son correctas."], c: 1 },
+        { e: "138.- Señale la respuesta que NO es correcta, en relación a las grúas:", o: ["a) Hay algunos modelos de grúas que incorporan un sistema de camillas de cintas para levantar horizontalmente al paciente y realizar el aseo y/o curas.", "b) Las grúas están equipadas con un arnés que nos ayuda en el movimiento del paciente.", "c) Se emplea en las unidades de hospitalización para la movilización de pacientes impedidos o demasiado pesados, garantizando así mayor seguridad y menor riesgo de lesiones.", "d) Podemos encontrar tres tipos de grúas: hidráulica, eléctrica y electrohidráulica."], c: 3 },
+        { e: "139.- En la utilización de transfer como puente entre plano y plano:", o: ["a) Se introduce por debajo de la sábana del paciente dejando la mitad del transfer debajo de éste y la otra mitad fuera de la camilla.", "b) Se introduce por debajo de la sábana del paciente dejando todo el transfer debajo de la sábana del paciente.", "c) Se introduce por debajo de la sábana del paciente dejando dos tercios del transfer debajo de éste y el otro tercio fuera de la camilla.", "d) Ninguna de las respuestas anteriores es correcta."], c: 0 },
+        { e: "140.- ¿Qué significa la sigla 'TAC'?", o: ["a) Tomografía Axial Computarizada.", "b) Tratamiento Asistido Clínico.", "c) Técnica de Análisis Corporal.", "d) Tomografía Avanzada de Contraste."], c: 0 },
+        { e: "141.- Señala la respuesta correcta en relación al transfer fijo:", o: ["a) El transfer fijo, es en realidad un rolón eléctrico, con desplazamientos verticales.", "b) El transfer fijo, es en realidad un rolón eléctrico, con desplazamientos horizontales.", "c) a) y b) son correctas.", "d) a) y b) son incorrectas."], c: 2 },
+        { e: "142.- Señale la respuesta que NO es correcta en el manejo de la silla de ruedas:", o: ["a) En las rampas, para subir lo haremos de frente.", "b) Para salir del ascensor, lo haremos de frente a la puerta.", "c) Para entrar en el ascensor se hará de espaldas al mismo.", "d) En las rampas para bajar lo haremos de frente."], c: 3 },
+        { e: "143.- Señale la respuesta INCORRECTA respecto al oxígeno:", o: ["a) Es un gas poco reactivo.", "b) Su manipulación precisa de adopción de precauciones.", "c) Es un gas incoloro e insípido.", "d) Es un gas inodoro."], c: 0 },
+        { e: "144.- Señale la respuesta que NO es correcta en el manejo de un paciente con bala de oxígeno:", o: ["a) Debemos colgar la bala de oxígeno en la cama del paciente.", "b) Si el traslado se realiza con el humidificador no se debe colocar la bala tumbada.", "c) Cerraremos el caudalímetro para prevenir fugas durante el traslado.", "d) a) y b) son correctas."], c: 2 },
+        
+        { e: "145.- El aparato que regula la nutrición vía sanguínea se denomina:", o: ["a) Bomba de nutrición enteral.", "b) Bomba de nutrición parenteral.", "c) Bomba de perfusión.", "d) Bomba de nutrición contínua."], c: 1 },
+        { e: "146.- Señale la respuesta que NO es correcta en relación con el microdifusor electrotérmico:", o: ["a) Los tratamientos DVA proporcionan reducciones importantes en los niveles de contaminación microbiológica de todos los puntos, excepto en los más alejados.", "b) Es el sistema que permite la desinfección total de superficies a través del aire.", "c) Es un proceso en el que el aire sirve de vector de transmisión del aerosol biocida.", "d) b) y c) son verdaderas."], c: 0 },
+        { e: "147.- El aparato cuya finalidad es registrar corrientes eléctricas del corazón se denomina:", o: ["a) Electrocardiógrafo.", "b) Ecocardiógrafo.", "c) Ecógrafo.", "d) a) y b) son correctas."], c: 0 },
+        { e: "148.- Señale la respuesta correcta respecto al Escabel:", o: ["a) Puede utilizarse como ayuda para subir a la cama.", "b) Se utiliza para el descanso de los pies en pacientes que están sentados.", "c) Se utiliza para evitar el roce de las sábanas.", "d) a) y b) son correctas."], c: 3 },
+        { e: "149.- Señala, de los siguientes sufijos, cuál significa 'aumento de volumen':", o: ["a) -logía.", "b) -tomía.", "c) -osis.", "d) -megalia."], c: 3 },
+        { e: "150.- El trapecio o potencia:", o: ["a) Es un armazón metálico utilizado en camas traumatológicas.", "b) Es un dispositivo que permite limitar los movimientos de la cabeza y cuello.", "c) Es un recipiente para transportar muestras, recoger residuos orgánicos y de curas.", "d) Es un dispositivo a través del cual se ayuda el paciente para moverse en la cama."], c: 3 }
+
+    ];
+
+
+        // random 
+        for (let i = banco.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [banco[i], banco[j]] = [banco[j], banco[i]];
+        }
+
+        //fin random
+
+        let actual = 0;
+        let puntos = 0;
+        let respondido = false;
+
+        function mostrar() {
+            const p = banco[actual];
+            document.getElementById("info").innerText = `Pregunta ${actual + 1} de ${banco.length} | Puntos: ${puntos}`;
+            document.getElementById("pregunta").innerText = p.e;
+            let html = "";
+            p.o.forEach((opt, i) => {
+                html += `<div class="option" id="opt${i}" onclick="select(${i})">${opt}</div>`;
+            });
+            document.getElementById("opciones").innerHTML = html;
+            document.getElementById("btn").innerText = "Comprobar";
+            respondido = false;
+            window.selectedOpt = -1;
+        }
+
+        function select(i) {
+            if(respondido) return;
+            window.selectedOpt = i;
+            for(let j=0; j<4; j++) document.getElementById("opt"+j).style.border = "1px solid #ccc";
+            document.getElementById("opt"+i).style.border = "3px solid #326eb4";
+        }
+
+        function checkOrNext() {
+            if(!respondido) {
+                if(window.selectedOpt === -1) return;
+                respondido = true;
+                const p = banco[actual];
+                if(window.selectedOpt === p.c) puntos++;
+                document.getElementById("opt"+p.c).classList.add("correct");
+                if(window.selectedOpt !== p.c) document.getElementById("opt"+window.selectedOpt).classList.add("wrong");
+                document.getElementById("btn").innerText = "Siguiente";
+            } else {
+            actual++;
+            if (actual < banco.length) {
+                mostrar();
+            } else {
+                document.getElementById("pregunta").innerText = "Fin del cuestionario";
+                document.getElementById("opciones").innerHTML = 
+                    `<p style="text-align:center; font-size:1.2rem;">
+                        Puntuación final: <strong>${puntos} / ${banco.length}</strong>
+                    </p>`;
+                document.getElementById("btn").style.display = "none";
+            }
+        }
+        }
+        mostrar();
+    </script>
+</body>
+</html>

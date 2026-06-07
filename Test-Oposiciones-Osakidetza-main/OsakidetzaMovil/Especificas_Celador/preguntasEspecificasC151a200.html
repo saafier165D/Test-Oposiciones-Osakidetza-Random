@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OPE Osakidetza</title>
+    <style>
+        /*estilos para Movil*/
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 10px; 
+            background: #ebf5ff; 
+            margin: 0; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .card { 
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%; 
+            max-width: 500px;
+            margin: 20px auto; 
+        }
+
+        #info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #pregunta {
+            font-size: 1.2rem; 
+            line-height: 1.4;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .option { 
+            display: block; 
+            padding: 18px; 
+            margin: 12px 0; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .correct { background: #d4ffd4 !important; border-color: #28a745 !important; }
+        .wrong { background: #ffd4d4 !important; border-color: #dc3545 !important; }
+
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: #326eb4; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            margin-top: 10px;
+            -webkit-appearance: none; 
+            appearance: none; 
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="info"></div>
+        <h3 id="pregunta"></h3>
+        <div id="opciones"></div>
+        <button id="btn" onclick="checkOrNext()">Comprobar</button>
+    </div>
+
+    <script>
+    const banco = [
+        
+        { e: "151.- La especialidad que se encarga del cuidado total de los pacientes cuya enfermedad no responde al tratamiento activo con intención curativa es:", o: ["a) Cuidados contínuos.", "b) Cuidados paliativos.", "c) Cuidados terminales.", "d) Cuidados intensivos."], c: 1 },
+        { e: "152.- La técnica mediante la cual se separan los componentes de la sangre siendo seleccionados los necesarios, para su aplicación en medicina, y devueltos al torrente sanguíneo el resto de sus componentes, se denomina:", o: ["a) Frotis.", "b) Amniocentesis.", "c) Aféresis.", "d) Desbridación."], c: 2 },
+        { e: "153.- La cirugía reparadora de los vasos sanguíneos se denomina:", o: ["a) Angioplastia.", "b) Broncoscopia.", "c) Colangiografía.", "d) Profilaxis."], c: 0 },
+        { e: "154.- Para colocar el arnés al paciente desde la posición de decúbito lateral:", o: ["a) Debemos pasar el arnés por encima de la entremetida, moverlo hacia decúbito lateral contrario, estirar el arnés y la entremetida.", "b) Debemos pasar el arnés por encima de la entremetida, moverlo hacia decúbito lateral contrario, estirar el arnés y la entremetida para finalizar en decúbito supino.", "c) Debemos pasar el arnés por debajo de la entremetida, moverlo hacia decúbito supino, estirar el arnés y la entremetida para finalizar en decúbito lateral.", "d) Debemos pasar el arnés por debajo de la entremetida, moverlo hacia decúbito lateral contrario, estirar el arnés y la entremetida para finalizar en decúbito supino."], c: 3 },
+        { e: "155.- La quinta rueda de las camillas sirve para:", o: ["a) Frenar la camilla.", "b) Fijar la dirección de las ruedas delanteras en sentido de la marcha.", "c) Facilitar los desplazamientos laterales.", "d) Facilitar el giro y guiado de la camilla."], c: 1 },
+        { e: "156.- La actuación inmediata a realizar ante una agresión será:", o: ["a) Aunque se necesite asistencia médica, lo primero sería la interposición de la correspondiente denuncia ante la autoridad policial.", "b) Si requiere asistencia médica, acuda a la Unidad Básica de Prevención (UBP) correspondiente.", "c) Aunque se necesite asistencia médica, lo primero es elaborar junto con el responsable inmediato, un informe lo más exhaustivo posible.", "d) Cumplimente el Registro para la Notificación de Accidente 'Formato I' firmado por el responsable inmediato, antes de acudir al servicio de urgencias."], c: 1 },
+        
+        { e: "157.- El fuego se clasifica en diferentes clases, y no todas se apagan con el mismo agente extintor. Por eso, para cada clase de fuego encontramos diferentes tipos de extintores:", o: ["a) Para fuegos de clase B se puede utilizar agua.", "b) Para fuegos de clase ABC se puede utilizar extintores de Polvo Polivalente.", "c) Para fuegos de clase ABC se puede utilizar agua pulverizada o dióxido de carbono (CO2).", "d) Para fuegos de clase C se puede utilizar extintores de dióxido de carbono (CO2)."], c: 1 },
+        { e: "158.- ¿Qué precaución se tiene que tener en cuenta cuando se utiliza un extintor de dióxido de carbono?", o: ["a) Solo es adecuado para fuegos de tipo C y el contacto de CO2 con partes del cuerpo al salir al exterior puede producir quemaduras por calor.", "b) Solo es adecuado para fuegos de tipo A y B y el contacto de CO2 con partes del cuerpo al salir al exterior puede producir quemaduras por calor.", "c) Solo es adecuado para fuegos de tipo C y el contacto de CO2 con partes del cuerpo al salir al exterior puede producir quemaduras por frío.", "d) Solo es adecuado para fuegos de tipo A y B y el contacto de CO2 con partes del cuerpo al salir al exterior puede producir quemaduras por frío."], c: 3 },
+        { e: "159.- Un accidente biológico se produce por la exposición accidental a agentes biológicos, y esto puede ocurrir por:", o: ["a) Contacto con piel no intacta.", "b) Contacto con piel intacta.", "c) Contacto con sangre u otros fluidos biológicos a través de cortes o pinchazos.", "d) a) y c) son correctas."], c: 3 },
+        { e: "160.- ¿Cómo se denomina al suceso no esperado ni deseado que no dando lugar a pérdidas de salud o lesiones a las personas, pueda ocasionar daños en el equipo que estamos manejando?", o: ["a) Accidente de trabajo.", "b) Accidente sin baja.", "c) Accidente in-itinere.", "d) Incidente."], c: 3 },
+        { e: "161.- Con respecto a las vacaciones:", o: ["a) Las vacaciones pueden ser compensadas con dinero si así lo solicita mediante un escrito notarial 15 días antes de cada periodo vacacional.", "b) Como norma general, las vacaciones no podrán ser compensadas, ni en todo ni en parte, en metálico.", "c) El trabajador solicita al inicio de su prestación laboral si quiere ser compensado en parte en metálico cuando finalice su periodo de contratación.", "d) En ningún caso se podrá solicitar que se compense las vacaciones."], c: 1 },
+        { e: "162.- Elige la respuesta correcta en relación al equipo de protección individual:", o: ["a) Cualquier máquina, aparato, instrumento o instalación utilizada en el trabajo.", "b) Toda herramienta o dispositivo que el responsable inmediato entrega al trabajador para realizar su tarea de forma rápida.", "c) Un conjunto de medidas colectivas diseñadas para eliminar los riesgos ambientales en el entorno sanitario.", "d) Cualquier equipo destinado a ser llevado o sujetado por el trabajador para que le proteja de uno o varios riesgos que puedan amenazar su seguridad o salud en el trabajo."], c: 3 },
+        
+        { e: "163.- En una sujeción abdominal, las correas de sujeción:", o: ["a) La parte inferior se sujeta a la cama y la superior se coloca alrededor de la cintura del paciente.", "b) La parte abdominal se sujeta a la cama y la inferior se coloca alrededor de los miembros inferiores del paciente.", "c) Facilita la inmovilización total del paciente encamado.", "d) a) y c) son correctas."], c: 0 },
+        { e: "164.- En las correas de peto, el kit número 1, para el corsé abdominal, contaremos con:", o: ["a) 4 botones de cierre magnético.", "b) 5 botones de cierre magnético.", "c) 3 botones de cierre magnético.", "d) 6 botones de cierre magnético."], c: 2 },
+        { e: "165.- ¿Qué se debe comprobar siempre después de movilizar a un paciente?", o: ["a) Que la cama esté en posición Trendelemburg.", "b) Que el paciente tenga el suero lleno.", "c) La seguridad del paciente.", "d) Que el paciente esté en decúbito supino."], c: 2 },
+        { e: "166.- ¿Qué aparato se utiliza para realizar exploraciones mediante ondas de ultrasonido?", o: ["a) Ecocardiógrafo.", "b) Ecógrafo.", "c) Endoscopio.", "d) Monitor."], c: 1 },
+        { e: "167.- ¿Qué material se utiliza para inmovilizar completamente la columna en pacientes politraumatizados?", o: ["a) Tabla para paradas.", "b) Férula de Brown.", "c) Tablero de inmovilización espinal.", "d) Escopia."], c: 2 },
+        { e: "168.- Según en la Carpeta Roja, ¿Cuál de las siguientes afirmaciones sobre la Hoja de Consulta en Prevención es INCORRECTA?", o: ["a) El trabajador la entrega a su responsable inmediato.", "b) Sirve para sugerencias de mejora.", "c) Solo puede usarse para quejas formales.", "d) Puede emplearse para consultar sobre vigilancia de la salud."], c: 2 },
+        { e: "169.- ¿Cuál de las siguientes afirmaciones sobre riesgos ergonómicos es INCORRECTA?", o: ["a) Mantener la misma postura durante un tiempo ayuda a evitar fatiga.", "b) Acompañar el movimiento del tronco con los pies.", "c) Flexionar las piernas y mantener la espalda recta al movilizar pacientes.", "d) Realizar cambios frecuentes de postura."], c: 0 },
+        
+        { e: "170.- ¿Qué acción forma parte del procedimiento correcto al usar un extintor según el manual?", o: ["a) Apuntar directamente al centro de las llamas.", "b) Realizar movimientos en abanico cubriendo la base del fuego.", "c) Mantener el extintor inclinado para aumentar el alcance.", "d) Probar el extintor apuntando hacia arriba antes de usarlo."], c: 1 },
+        { e: "171.- Según el manual de Riesgos Generales de Osakidetza, ¿cuál de las siguientes es una norma general en el manejo de productos químicos en un centro sanitario?", o: ["a) Se permite el consumo de bebidas en las áreas de manipulación siempre que los envases estén cerrados.", "b) Se pueden oler los productos químicos para identificarlos en caso de que la etiqueta no sea legible.", "c) En caso de trasvase a otro recipiente, identifique el contenido y etiquete el nuevo envase.", "d) Mantenga abiertos los recipientes con productos químicos, en especial los que contengan productos volátiles (glutaraldehído) para evitar la acumulación de gases."], c: 2 },
+        { e: "172.- Indica la respuesta INCORRECTA en relación al uso del extintor:", o: ["a) Apunte hacia la base del fuego.", "b) Coloque el extintor en posición vertical.", "c) Coloque el extintor en posición horizontal.", "d) Rompa el precinto y retire el seguro."], c: 2 },
+        { e: "173.- La temperatura a la cual una sustancia comienza a desprender vapores en cantidad suficiente para mantener la combustión, se denomina:", o: ["a) Proceso de combustión.", "b) Temperatura de autoinflamación.", "c) Punto de inflamación.", "d) Calor."], c: 2 },
+        { e: "174.- ¿Qué medida se establece para asegurar el seguimiento de la jornada en los centros de Osakidetza?", o: ["a) Existirá un sistema de control horario, de obligado cumplimiento en todas las organizaciones de servicios dependiente del Ente público.", "b) Los Jefes de Unidad supervisarán a diario quién entra y quién sale.", "c) Se implementará un registro de firmas manual únicamente en aquellos centros que no dispongan de sistemas informáticos de fichaje.", "d) Todas las respuestas son correctas."], c: 0 },
+        
+        { e: "175.- A la hemorragia procedente del útero, que no está relacionada con la regla se le denomina:", o: ["a) Metrorragia.", "b) Melena.", "c) Aftas.", "d) Amniocentesis."], c: 0 },
+        { e: "176.- ¿Cómo se denomina el aparato que se utiliza para realizar ecografías cardíacas?", o: ["a) Ecocardiógrafo.", "b) Escopia.", "c) Electrocardiógrafo.", "d) Hemofiltro."], c: 0 },
+        { e: "177.- El término esplenomegalia hace referencia a:", o: ["a) Estrechamiento de un orificio.", "b) Hinchazón por acúmulo anormal de líquido.", "c) Aumento de tamaño del bazo.", "d) Enfermedad de carácter agudo consistente en una inflamación del hígado."], c: 2 },
+        { e: "178.- A la inflamación de un ganglio linfático se le denomina:", o: ["a) Adenoma.", "b) Aféresis.", "c) Adenitis.", "d) Absceso."], c: 2 },
+        { e: "179.- A la membrana interna que contiene el líquido amniótico, se le denomina:", o: ["a) Amniocentesis.", "b) Amnios.", "c) Anamnesis.", "d) Anemia."], c: 1 },
+        { e: "180.- A la definición referente a las vida le corresponde el prefijo:", o: ["a) Bio-.", "b) Hidro-.", "c) Inter-.", "d) Logía-."], c: 0 },
+
+        { e: "181. ¡¡¡¡NULA!!! - En el decreto 255/1998, ¿quién es competente para fijar o trasladar el domicilio del Ente Público Osakidetza-Servicio vasco de salud?", o: ["a) El Gobierno Vasco mediante Decreto.", "b) El Departamento de Sanidad de la Comunidad Autónoma.", "c) El Consejo de Administración del Ente Público.", "d) El Director de Régimen Económico y Financiero del Ente Público."], c: 2 },
+        { e: "182.- De acuerdo con la clasificación de los fuegos, ¿cómo se catalogaría un incendio que involucra exclusivamente a líquidos?", o: ["a) Fuegos clase A.", "b) Fuegos clase B.", "c) Fuegos clase C.", "d) Fuegos clase D."], c: 1 },
+        { e: "183.- Si se produce un fuego en una zona con brasas, ¿cuál de los siguientes agentes extintores NO debe utilizarse según las propiedades descritas en el manual?", o: ["a) Polvo polivalente.", "b) Agua.", "c) Dióxido de carbono.", "d) Todas las respuestas son correctas."], c: 2 },
+        { e: "184.- Indica la respuesta correcta en relación a la radiación ionizante:", o: ["a) El acceso a las áreas en las cuales se utiliza radiación ionizante está restringido a personas autorizadas.", "b) La radiación ionizante pueden ser diversas: infrarroja y láser, Electromagnética...", "c) Los efectos para la salud evidenciados son escasos (calor local, enrojecimiento de piel).", "d) Todas las respuestas son correctas."], c: 0 },
+        { e: "185.- En el uso de pantallas de Visualización de datos (PVD’s), ¿cómo se debe colocar la pantalla respecto a los ojos?", o: ["a) De manera que los ojos se sitúen a la altura de los bordes superiores de esta.", "b) De manera que los ojos se sitúen a la altura de los bordes inferiores de esta.", "c) Lo más alta posible para estirar el cuello.", "d) Por debajo del nivel de la mesa."], c: 0 },
+        { e: "186.- En caso de sufrir un accidente laboral que precise asistencia médica inmediata en horario de mañana (8:00 a 15:00), ¿a dónde debe acudir el trabajador prioritariamente?", o: ["a) A su médico de cabecera en el centro de salud.", "b) A la Unidad Básica de Prevención (UPB) de su organización.", "c) Directamente a las oficinas de Mutualia.", "d) Todas las respuestas son incorrectas."], c: 1 },
+       
+        { e: "187.- Para que un accidente de trabajo sea considerado in itinere, es necesario que:", o: ["a) El medio de locomoción sea el habitual.", "b) El trayecto no se haya modificado o interrumpido voluntariamente.", "c) El margen de tiempo está dentro de los límites normales.", "d) Todas las respuestas son correctas."], c: 3 },
+        { e: "188.- Indica la respuesta correcta en relación al tubo de Guedel:", o: ["a) Cánula que se utiliza para impedir que la lengua caiga hacia atrás, bloqueando la vía respiratoria.", "b) Tubo flexible, que puede introducirse en un vaso o una cavidad del cuerpo, para introducir o extraer líquidos.", "c) Se le denomina también cánula de Mayo.", "d) Las respuestas a y c son correctas."], c: 3 },
+        { e: "189.- El término hematuria hace referencia a:", o: ["a) Vómito en sangre procedente de estómago-intestino.", "b) Coloración amarillenta de la piel.", "c) Presencia de sangre en orina.", "d) Expulsión de sangre procedente de vías respiratorias."], c: 2 },
+        { e: "190.- El término colelitiasis se define como:", o: ["a) Inflamación de la vejiga de la orina causada por infección bacteriana.", "b) Estudio y visualización de las vías biliares, a través de Rx, y la inyección de un preparado radiopaco.", "c) Presencia de piedras en vesícula biliar.", "d) Todas las respuestas son incorrectas."], c: 2 },
+        { e: "191.- El término aneurisma hace referencia a:", o: ["a) Dilatación de la pared debilitada de un vaso sanguíneo.", "b) Estudio con técnicas radiológicas de las estructuras vasculares.", "c) Coloración azul violeta de la piel y mucosas debida a la falta de oxígeno en la sangre.", "d) Todas las respuestas son incorrectas."], c: 0 },
+        { e: "192.- La especialidad médica encargada del estudio de la función normal, la anatomía y los desórdenes producidos por alteraciones de las glándulas endocrinas es:", o: ["a) Dermatología.", "b) Hematología.", "c) Endocrinología.", "d) Nefrología."], c: 2 },
+       
+        { e: "193.- A la definición referente al dolor, le corresponde el sufijo:", o: ["a) -grafía.", "b) -algia.", "c) -itis.", "d) -citosis."], c: 1 },
+        { e: "194.- A la definición referente a las venas le corresponde el prefijo:", o: ["a) Hemi-.", "b) Endo-.", "c) Hidro-.", "d) Flebo-."], c: 3 },
+        { e: "195.- El término histerectomía hace referencia a:", o: ["a) Extirpación del útero.", "b) Hemorragia del útero.", "c) Caída del útero.", "d) Todas las respuestas son correctas."], c: 0 },
+        { e: "196.- Indica la respuesta correcta en relación a la licencia por traslado o mudanza del domicilio habitual:", o: ["a) Tendrá derecho a una licencia de un día de duración dentro del plazo de un mes natural a contar desde la fecha de empadronamiento.", "b) Tendrá derecho a una licencia de un día de duración dentro del plazo de un año natural a contar desde la fecha de empadronamiento.", "c) Tendrá derecho a una licencia de dos días naturales de duración dentro del plazo de un mes natural a contar desde la fecha de empadronamiento.", "d) Tendrá derecho a una licencia de dos días naturales de duración dentro del plazo de un año natural a contar desde la fecha de empadronamiento."], c: 2 },
+        { e: "197.- Indica la respuesta correcta en relación a la licencia para atender el cuidado de un familiar de primer grado por razones de enfermedad muy grave:", o: ["a) El trabajador tendrá derecho a solicitar una reducción de hasta el cincuenta por ciento de la jornada laboral con carácter retribuido y por el plazo máximo de 2 meses.", "b) El trabajador tendrá derecho a solicitar una reducción de hasta el cincuenta por ciento de la jornada laboral con carácter retribuido y por el plazo máximo de 1 mes.", "c) El trabajador tendrá derecho a solicitar una reducción de hasta el cien por ciento de la jornada laboral con carácter retribuido y por el plazo máximo de 1 mes.", "d) Todas las respuestas son incorrectas."], c: 1 },
+        
+        { e: "198.- Según el Acuerdo Regulador de Osakidetza, ¿cuál es la duración de la licencia retribuida por matrimonio propio?", o: ["a) El personal tiene derecho a una licencia de 20 días naturales de duración que podrá disfrutar con anterioridad o posterioridad a su celebración.", "b) El personal tiene derecho a una licencia de 25 días naturales de duración que podrá disfrutar con anterioridad o posterioridad a su celebración.", "c) El personal tiene derecho a una licencia de 20 días naturales de duración que podrá disfrutar únicamente con posterioridad a su celebración.", "d) El personal tiene derecho a una licencia de 25 días naturales de duración que podrá disfrutar únicamente con posterioridad a su celebración."], c: 0 },
+        { e: "199.- A el tablero destinado a pacientes que precisen de una inmovilización de urgencia, se le denomina:", o: ["a) Tablero de inmovilización espinal.", "b) Tablero de paradas.", "c) Transpaleta eléctrica.", "d) Camilla de exploración."], c: 0 },
+        { e: "200.- El decreto 255/1997 en su artículo 4 (personalidad jurídica y capacidad de obrar) indica que el Ente Público Osakidetza-Servicio Vasco de Salud:", o: ["a) Actúa con personalidad jurídica privada y capacidad limitada al ámbito sanitario.", "b) Dispone de personalidad jurídica pública diferenciada y plena capacidad de obrar para el cumplimiento de su objeto y fines.", "c) Carece de personalidad jurídica propia y depende orgánicamente del Departamento de Sanidad.", "d) Todas son incorrectas."], c: 1 }
+    ];
+
+
+        // random 
+        for (let i = banco.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [banco[i], banco[j]] = [banco[j], banco[i]];
+        }
+
+        //fin random
+
+        let actual = 0;
+        let puntos = 0;
+        let respondido = false;
+
+        function mostrar() {
+            const p = banco[actual];
+            document.getElementById("info").innerText = `Pregunta ${actual + 1} de ${banco.length} | Puntos: ${puntos}`;
+            document.getElementById("pregunta").innerText = p.e;
+            let html = "";
+            p.o.forEach((opt, i) => {
+                html += `<div class="option" id="opt${i}" onclick="select(${i})">${opt}</div>`;
+            });
+            document.getElementById("opciones").innerHTML = html;
+            document.getElementById("btn").innerText = "Comprobar";
+            respondido = false;
+            window.selectedOpt = -1;
+        }
+
+        function select(i) {
+            if(respondido) return;
+            window.selectedOpt = i;
+            for(let j=0; j<4; j++) document.getElementById("opt"+j).style.border = "1px solid #ccc";
+            document.getElementById("opt"+i).style.border = "3px solid #326eb4";
+        }
+
+        function checkOrNext() {
+            if(!respondido) {
+                if(window.selectedOpt === -1) return;
+                respondido = true;
+                const p = banco[actual];
+                if(window.selectedOpt === p.c) puntos++;
+                document.getElementById("opt"+p.c).classList.add("correct");
+                if(window.selectedOpt !== p.c) document.getElementById("opt"+window.selectedOpt).classList.add("wrong");
+                document.getElementById("btn").innerText = "Siguiente";
+            } else {
+            actual++;
+            if (actual < banco.length) {
+                mostrar();
+            } else {
+                document.getElementById("pregunta").innerText = "Fin del cuestionario";
+                document.getElementById("opciones").innerHTML = 
+                    `<p style="text-align:center; font-size:1.2rem;">
+                        Puntuación final: <strong>${puntos} / ${banco.length}</strong>
+                    </p>`;
+                document.getElementById("btn").style.display = "none";
+            }
+        }
+        }
+        mostrar();
+    </script>
+</body>
+</html>

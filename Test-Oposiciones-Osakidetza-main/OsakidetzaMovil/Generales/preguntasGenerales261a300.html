@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OPE Osakidetza</title>
+    <style>
+        /*estilos para Movil*/
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 10px; 
+            background: #ebf5ff; 
+            margin: 0; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .card { 
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%; 
+            max-width: 500px;
+            margin: 20px auto; 
+        }
+
+        #info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #pregunta {
+            font-size: 1.2rem; 
+            line-height: 1.4;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .option { 
+            display: block; 
+            padding: 18px; 
+            margin: 12px 0; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .correct { background: #d4ffd4 !important; border-color: #28a745 !important; }
+        .wrong { background: #ffd4d4 !important; border-color: #dc3545 !important; }
+
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: #326eb4; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            margin-top: 10px;
+            -webkit-appearance: none; 
+            appearance: none; 
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="info"></div>
+        <h3 id="pregunta"></h3>
+        <div id="opciones"></div>
+        <button id="btn" onclick="checkOrNext()">Comprobar</button>
+    </div>
+
+    <script>
+
+
+    const banco = [
+        
+        { e: "261.- El III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028 contempla que tanto en los servicios de recepción y admisión, como en las unidades asistenciales y administrativas a toda la ciudadanía vascohablante debe garantizarse:", o: ["a) La recepción en euskera.", "b) La recepción en euskera solo cuando la comunicación oral con pacientes y personas usuarias sea de modo presencial.", "c) La recepción en euskera solo cuando la comunicación con pacientes y personas usuarias sea telefónicamente.", "d) La recepción en euskera solo por las y los empleados que sepan en euskera."], c: 0 },
+        { e: "262.- El III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028 establece que, en los escritos individualizados de respuesta a solicitudes y reclamaciones de pacientes o personas usuarias de Osakidetza se utilizará:", o: ["a) La lengua utilizada por cada ciudadano o ciudadana.", "b) Siempre el euskera como lengua preferente.", "c) Siempre las dos lenguas oficiales independientemente de la lengua utilizada por cada ciudadano o ciudadana.", "d) Ambas lenguas oficiales, siendo los escritos contestados primero en euskera y luego en castellano."], c: 0 },
+        { e: "263.- Siguiendo lo previsto en el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, señale la respuesta que no es correcta:", o: ["a) Se pondrá a disposición del personal bilingüe que lo desee diferentes elementos identificativos portadores del circulo azul con la letra e, signo que invita a relacionarse en euskera.", "b) El signo azul y la letra e solo se utilizará para la identificación individual del personal bilingüe.", "c) En los centros de salud, consultorios y unidades hospitalarias, deberá estar colocado, de modo visible, el cartel que explica a las personas usuarias el significado del signo identificativo con la letra e.", "d) Se estudiará introducir una variante del círculo azul con la letra e para el personal dispuesto a que le hablen en euskera pero que muestra dificultades para expresarse en ciertas situaciones."], c: 1 },
+        { e: "264.- En atención a lo previsto en el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, en todos los centros de atención primaria ha de ponerse en marcha un procedimiento para que, en la medida de las posibilidades, se propongan servicios en euskera a las personas pacientes que hayan registrado esta lengua como preferente y que aún reciban los citados servicios en castellano. Señale a qué servicios se refiere el citado Plan:", o: ["a) Medicina familiar, pediatría, enfermería y salud mental.", "b) Pediatría, medicina familiar y salud mental.", "c) Medicina familiar, pediatría, enfermería y matrona.", "d) Todas las anteriores respuestas son correctas."], c: 2 },
+        { e: "265.- Conforme al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, con relación a las quejas relacionadas con el uso de las lenguas oficiales en Osakidetza, señale la respuesta que no es correcta:", o: ["a) La dirección responsable de las acciones previstas con relación a las quejas relaciones con el uso de las lenguas oficiales en Osakidetza es la Dirección de Recursos Humanos.", "b) En los Servicios de Atención a Pacientes y personas Usuarias (SAPU) quedarán registradas las quejas relacionadas con el uso de las lenguas oficiales.", "c) Las quejas relacionadas con el uso de las lenguas oficiales serán gestionadas por el SAPU y por la persona o personas responsables del servicio objeto de la queja.", "d) Para mejorar la gestión y seguimiento de las quejas, Osakidetza acordará un protocolo con las entidades que trabajan en el ámbito de los derechos lingüísticos."], c: 0 },
+        { e: "266.- Conforme al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, en las relaciones con empresas proveedoras, entidades financieras y organismos privados:", o: ["a) Se designarán interlocutores o interlocutoras vasco-hablantes y se notificará el deseo de Osakidetza de relacionarse en euskera.", "b) En la comunicación escrita siempre debe utilizarse las dos lenguas oficiales.", "c) Osakidetza solicitará a las entidades proveedoras que sus productos que tengan como personas destinatarias a profesionales de Osakidetza estén en euskera .", "d) Ninguna de las anteriores respuestas es correcta."], c: 0 },
+        { e: "267.- Conforme al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, la Dirección General de Osakidetza realizará una comunicación interna de cara a conocer el registro de la lengua preferente de cada profesional, explicar el modo de registrar la lengua preferente y animar al personal vascohablante a optar por el euskera:", o: ["a) Una vez cada seis meses.", "b) Una vez al año.", "c) Cada vez que haya una nueva contratación.", "d) El III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2018 no contempla esta acción."], c: 1 },
+        { e: "268.- Conforme al III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028:", o: ["a) En los casos de los mensajes SMS que se envían a los teléfonos móviles de personas trabajadoras o candidatas, estarán escritos en las dos lenguas oficiales, primero en castellano y luego en euskera.", "b) Los escritos individualizados de respuesta a solicitudes y reclamaciones de las personas trabajadoras deberán redactarse en las dos lenguas oficiales.", "c) Osakidetza ha de garantizar que la información y los servicios ofrecidos tanto al personal empleado como a personas candidatas a través de las tecnologías de la comunicación estén en las dos lenguas oficiales, con el fin de que cada persona haga uso de la lengua de su preferencia.", "d) Las informaciones y comunicaciones no personalizadas dirigidas al personal deberán redactarse en las dos lenguas oficiales y se dará prioridad al castellano."], c: 2 },
+        { e: "269.- Como contempla el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028:", o: ["a) En puestos de Jefatura y responsabilidad, en los servicios de prioridad 2, se asignará fecha de preceptividad siempre que el porcentaje de fechas mínimas del servicio sea el 40% o superior.", "b) En puestos de Jefatura y responsabilidad, en los servicios de prioridad 2, se asignará fecha de preceptividad siempre que el porcentaje de fechas mínimas del servicio sea el 50% o superior.", "c) En los servicios de prioridad 2 se asignará fecha de preceptividad a los puestos vacantes por jubilación, incapacidad absoluta o fallecimiento de la persona titular cuando el porcentaje mínimo de fechas de preceptividad que corresponde al servicio sea el 50% o superior.", "d) Osakidetza realizará al menos una convocatoria anual de acreditación de perfiles lingüísticos de acuerdo a lo establecido en el Decreto 67/2003."], c: 1 },
+        { e: "270.- De acuerdo con el III Plan de Normalización del Uso del Euskera en Osakidetza 2022-2028, Osakidetza realizará dos evaluaciones generales del plan de euskera:", o: ["a) La primera el tercer año del período de planificación y la segunda el sexto año.", "b) La primera el segunda año del período de planificación y la segunda el sexto año.", "c) La primera el tercer año del período de planificación y la segunda el sexto año, y será una evaluación cualitativa.", "d) La primera el segunda año del período de planificación y la segunda el sexto año, y será una evaluación cuantitativa fundamentada en los indicadores del plan."], c: 0 },
+
+        { e: "271.- ¿Cuál es la vigencia temporal del Plan Oncológico Integral de Euskadi (POIE) al que se refiere el documento?", o: ["a) 2024-2028", "b) 2025-2030", "c) 2023-2027", "d) 2020-2025."], c: 1 },
+        { e: "272.- Según el Resumen Ejecutivo del Plan Oncológico Integral de Euskadi (POIE) 2025-2030, ¿de qué porcentaje de los fallecimientos en Euskadi fue responsable el cáncer en el año 2023?", o: ["a) 22,3%", "b) Menos del 15%", "c) 33,8%", "d) 28%"], c: 3 },
+        { e: "273.- Según el Resumen Ejecutivo del Plan Oncológico Integral de Euskadi (POIE) 2025-2030, ¿cuáles fueron las dos localizaciones de cáncer más frecuentes en Euskadi en el periodo 2015-2019, consideradas separadamente por sexo?", o: ["a) Cáncer colorrectal y cáncer de pulmón.", "b) Cáncer de mama en mujeres y cáncer de próstata en hombres.", "c) Cáncer de páncreas y cáncer de pulmón.", "d) Leucemia y Linfoma de Hodgkin."], c: 1 },
+        { e: "274.- ¿Cuál de las siguientes es una de las aspiraciones definidas en la VISIÓN del Plan Oncológico Integral de Euskadi (POIE) 2025-2030?", o: ["a) Mejorar la calidad de vida de las personas: de pacientes, supervivientes y de sus familiares y personas cuidadoras.", "b) Aumentar la cuota de mercado de Osakidetza en el sector oncológico privado.", "c) Garantizar la presencia equilibrada de ambos sexos en los órganos de gestión sanitaria.", "d) Establecer la telemedicina como la única forma de seguimiento oncológico."], c: 0 },
+        { e: "275.- La Misión del Plan Oncológico Integral de Euskadi (POIE) 2025-2030 busca generar valor a la ciudadanía vasca en términos de:", o: ["a) Mayor financiación externa para I+D.", "b) Menores listas de espera y más personal asistencial.", "c) Mejores resultados en salud.", "d) Una mayor supervivencia a los 10 años en todos los tumores."], c: 2 },
+        { e: "276.- En el Plan Oncológico Integral de Euskadi (POIE) 2025-2030, la “Centralidad de la persona y humanización” como Principio Rector incluye la incorporación de la perspectiva de género y la atención a:", o: ["a) La telemonitorización avanzada.", "b) La diversidad.", "c) El personal profesional no implicado directamente.", "d) Las redes sociales."], c: 1 },
+        { e: "277.- Teniendo en cuenta la introducción y el contexto del Plan Oncológico Integral de Euskadi 2025-2030. ¿Cuál fue una de las principales áreas de mejora identificadas en la evaluación del Plan Oncológico de Euskadi (POE) 2018-2023?", o: ["a) La excesiva visibilidad del plan entre profesionales sin implicación.", "b) La necesidad de aumentar el número de Comités de Tumores.", "c) La necesidad de reforzar la atención a colectivos específicos (infancia, mayores, personas largas supervivientes).", "d) La ausencia total de un modelo asistencial común."], c: 2 },
+        { e: "278.- ¿Cuántas Áreas Prioritarias de actuación componen el nuevo Plan Oncológico Integral de Euskadi (POIE) 2025-2030, después de la actualización de la estructura?", o: ["a) Cinco (5) Áreas Prioritarias.", "b) Seis (6) Áreas Prioritarias.", "c) Siete (7) Áreas Prioritarias.", "d) Ocho (8) Áreas Prioritarias."], c: 2 },
+        { e: "279.- Según el listado de acrónimos del Plan Oncológico Integral de Euskadi (POIE) 2025-2030, ¿a qué hacen referencia las siglas PROMs?", o: ["a) Plan de Resultados Oncológicos y Metodología de Seguimiento.", "b) Plan de Riesgos Ocupacionales en Medicina Sanitaria.", "c) Programa de Rehabilitación Oncológica y Mejora de la Supervivencia.", "d) Medidas de Resultados Reportadas por los y las Pacientes."], c: 3 },
+        { e: "280.- El Plan Oncológico Integral de Euskadi (POIE) 2025-2030 se alinea con el Plan de Salud de Euskadi 2030. ¿Cuál de las siguientes es una de las prioridades estratégicas de dicho Plan de Salud mencionadas en el documento?", o: ["a) Creación de una red de servicios privados de salud.", "b) Aumentar la esperanza de vida a 90 años.", "c) Reducir la morbimortalidad evitable y disminuir las desigualdades en salud", "d) Eliminación total del cáncer infantil antes de 2030."], c: 2 },
+
+        { e: "281.- ¿Cuál es el objeto fundamental de la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, según su Artículo 1?", o: ["a) Regular los cuidados paliativos avanzados en el Sistema Nacional de Salud.", "b) Modificar el Código Penal para despenalizar la asistencia al suicidio.", "c) Regular el derecho de toda persona a solicitar y recibir la prestación de ayuda para morir y la obligación de las Administraciones de garantizarla.", "d) Establecer el registro de las voluntades anticipadas y testamentos vitales."], c: 2 },
+        { e: "282.- Conforme al Artículo 5 de la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿qué requisito de nacionalidad se exige para poder recibir la prestación de ayuda para morir?", o: ["a) Tener la ciudadanía española con residencia legal ininterrumpida de al menos 10 años.", "b) Tener la nacionalidad española o tener residencia legal en España de al menos 5 años.", "c) Ser mayor de edad y tener la nacionalidad española, residencia legal o certificado de empadronamiento que acredite un tiempo de permanencia superior a 12 meses en territorio español.", "d) Tener la nacionalidad española y residencia en el mismo municipio durante los últimos 2 años."], c: 2 },
+        { e: "283.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿qué concepto define la ley como la 'administración directa a la persona paciente de una sustancia por parte del personal sanitario competente'?", o: ["a) Suicidio médicamente asistido.", "b) Sedación paliativa profunda.", "c) Eutanasia.", "d) Asistencia para morir."], c: 3 },
+        { e: "284.- Según el Artículo 5 de la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿cuál es la condición que debe padecer la persona paciente para solicitar la prestación de ayuda para morir?", o: ["a) Padecer una enfermedad incurable en fase terminal o un deterioro funcional grave.", "b) Sufrir una enfermedad que limite gravemente su autonomía.", "c) Padecer una enfermedad grave e incurable o un padecimiento grave, crónico e imposibilitante, causantes de un sufrimiento intolerable.", "d) Sufrir un dolor físico o psíquico que no puede ser tratado con paliativos."], c: 2 },
+        { e: "285.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿cuál debe ser la periodicidad mínima con la que el personal facultativo responsable debe consultar a la persona paciente, una vez presentada la solicitud, para confirmar si mantiene su deseo?", o: ["a) Al menos cada 7 días.", "b) Al menos cada 15 días, debiendo dejarse constancia en la historia clínica.", "c) Al menos cada 30 días, si el procedimiento se extiende.", "d) Una única vez antes de la prestación."], c: 1 },
+        { e: "286.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿qué órgano tiene la función de verificar en cada caso el cumplimiento de los requisitos establecidos en dicha Ley, con carácter previo a la realización de la prestación de ayuda para morir?", o: ["a) El Comité de Ética Asistencial del centro sanitario.", "b) El Consejo Interterritorial del Sistema Nacional de Salud.", "c) La Comisión de Garantía y Evaluación.", "d) La Inspección Sanitaria de la comunidad autónoma."], c: 2 },
+        { e: "287.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, si la persona paciente se encuentra en situación de incapacidad de hecho en el momento de solicitar la prestación, ¿quién puede presentar la solicitud en su nombre?", o: ["a) Únicamente sus familiares directos o cónyuge.", "b) Una persona facultativa o del trabajo social del equipo asistencial, siempre que la persona paciente hubiera suscrito con anterioridad un documento de instrucciones previas, testamento vital o documento equivalente.", "c) La persona legalmente habilitada por la autoridad judicial.", "d) No se puede solicitar la prestación si la persona paciente está en situación de incapacidad de hecho."], c: 1 },
+        { e: "288.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿cuál es el derecho que asiste al personal sanitario directamente implicado en la prestación de ayuda para morir?", o: ["a) Derecho a la reubicación en un puesto de trabajo diferente.", "b) Derecho a un incremento salarial por la complejidad de la prestación.", "c) Derecho a la objeción de conciencia.", "d) Derecho a recibir asistencia jurídica de oficio."], c: 2 },
+        { e: "289.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿qué define como 'padecimiento grave, crónico e imposibilitante'?", o: ["a) Aquel que implica la existencia de sufrimiento físico o psíquico constante.", "b) Aquel que genera una limitación que incide directamente sobre la autonomía física y capacidad de expresar su voluntad de la persona paciente.", "c) La dependencia de otra persona para la realización de al menos dos actividades básicas de la vida diaria.", "d) Una dolencia que ha sido declarada irreversible y con un pronóstico de vida inferior a seis meses."], c: 1 },
+        { e: "290.- Según la Ley Orgánica 3/2021, de 24 de marzo, de regulación de la eutanasia, ¿cuál es el plazo que tiene la persona facultativa responsable para comunicar la resolución favorable a la Comisión de Garantía y Evaluación para su posterior verificación?", o: ["a) Dentro de las 24 horas siguientes a la resolución.", "b) Dentro del día siguiente natural a la resolución.", "c) 7 días desde la resolución favorable.", "d) No existe un plazo establecido para esta comunicación."], c: 3 },
+
+        { e: "291.- ¿Cuál es el principio general que establece la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas?", o: ["a) La libre acumulación de empleos públicos.", "b) La incompatibilidad para desempeñar más de un puesto en el sector público, salvo excepciones.", "c) La compatibilidad automática entre empleo público y privado.", "d) La compatibilidad solo en el ámbito sanitario."], c: 1 },
+        { e: "292.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, ¿qué se considera “sector público”?", o: ["a) Solo la Administración General del Estado.", "b) Solo las Comunidades Autónomas.", "c) Las Administraciones Públicas y entidades vinculadas o dependientes de ellas.", "d) Únicamente los organismos autónomos."], c: 2 },
+        { e: "293.- Con carácter general, el personal comprendido en la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, podrá desempeñar:", o: ["a) Dos puestos públicos si uno es a tiempo parcial.", "b) Un segundo puesto público únicamente con autorización previa y en los supuestos previstos por la Ley.", "c) Cualquier actividad privada sin limitación.", "d) Dos puestos públicos si pertenecen a distinta Administración."], c: 1 },
+        { e: "294.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, ¿qué requisito es imprescindible para autorizar la compatibilidad con una actividad privada?", o: ["a) Que la actividad sea sanitaria.", "b) Que no se supere la jornada ordinaria establecida.", "c) Que no se comprometa la imparcialidad o independencia del personal público.", "d) Que lo autorice la jefatura inmediata sin más trámites."], c: 2 },
+        { e: "295.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, ¿puede percibirse más de una remuneración con cargo a los presupuestos públicos?", o: ["a) Sí, siempre que no superen el salario mínimo.", "b) No, salvo en los casos expresamente previstos en la Ley.", "c) Sí, sin limitación alguna.", "d) Solo si se trata de diferentes Administraciones autonómicas."], c: 1 },
+        { e: "296.- ¿La Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, es aplicable al personal estatutario de los servicios de salud?", o: ["a) No, porque se rige por normativa específica exclusivamente.", "b) Sí, como personal al servicio de las Administraciones Públicas.", "c) Solo si tienen plaza en propiedad.", "d) Solo al personal directivo."], c: 1 },
+        { e: "297.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, ¿qué ocurre si se desempeña una actividad incompatible sin autorización?", o: ["a) No ocurre nada si es fuera del horario laboral.", "b) Se considera falta leve.", "c) Puede dar lugar a responsabilidad disciplinaria.", "d) Solo se devuelve la remuneración percibida."], c: 2 },
+        { e: "298.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, ¿qué actividades están exceptuadas del régimen general de incompatibilidades?", o: ["a) Las actividades docentes o de investigación en determinados supuestos.", "b) Cualquier actividad privada.", "c) Solo actividades artísticas.", "d) Actividades comerciales propias sin límite."], c: 0 },
+        { e: "299.- Según la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, para que se autorice la compatibilidad para un segundo puesto público es necesario que:", o: ["a) Sea en el mismo centro de trabajo.", "b) Sea la jornada completa.", "c) Sea en los supuestos tasados y no se modifique la jornada y horario del puesto principal.", "d) Lo apruebe el personal trabajador del de servicio."], c: 2 },
+        { e: "300.- La finalidad principal de la Ley 53/1984, de 26 de diciembre, de Incompatibilidades del personal al servicio de las Administraciones Públicas, es:", o: ["a) Incrementar los ingresos del personal público.", "b) Garantizar la dedicación y la imparcialidad en el servicio público.", "c) Permitir la pluriactividad generalizada.", "d) Reducir el número de personal público."], c: 1 }
+        
+
+        
+    ];
+
+
+        // random 
+        for (let i = banco.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [banco[i], banco[j]] = [banco[j], banco[i]];
+        }
+
+        //fin random
+
+        let actual = 0;
+        let puntos = 0;
+        let respondido = false;
+
+        function mostrar() {
+            const p = banco[actual];
+            document.getElementById("info").innerText = `Pregunta ${actual + 1} de ${banco.length} | Puntos: ${puntos}`;
+            document.getElementById("pregunta").innerText = p.e;
+            let html = "";
+            p.o.forEach((opt, i) => {
+                html += `<div class="option" id="opt${i}" onclick="select(${i})">${opt}</div>`;
+            });
+            document.getElementById("opciones").innerHTML = html;
+            document.getElementById("btn").innerText = "Comprobar";
+            respondido = false;
+            window.selectedOpt = -1;
+        }
+
+        function select(i) {
+            if(respondido) return;
+            window.selectedOpt = i;
+            for(let j=0; j<4; j++) document.getElementById("opt"+j).style.border = "1px solid #ccc";
+            document.getElementById("opt"+i).style.border = "3px solid #326eb4";
+        }
+
+        function checkOrNext() {
+            if(!respondido) {
+                if(window.selectedOpt === -1) return;
+                respondido = true;
+                const p = banco[actual];
+                if(window.selectedOpt === p.c) puntos++;
+                document.getElementById("opt"+p.c).classList.add("correct");
+                if(window.selectedOpt !== p.c) document.getElementById("opt"+window.selectedOpt).classList.add("wrong");
+                document.getElementById("btn").innerText = "Siguiente";
+            } else {
+            actual++;
+            if (actual < banco.length) {
+                mostrar();
+            } else {
+                document.getElementById("pregunta").innerText = "Fin del cuestionario";
+                document.getElementById("opciones").innerHTML = 
+                    `<p style="text-align:center; font-size:1.2rem;">
+                        Puntuación final: <strong>${puntos} / ${banco.length}</strong>
+                    </p>`;
+                document.getElementById("btn").style.display = "none";
+            }
+        }
+        }
+        mostrar();
+    </script>
+</body>
+</html>
